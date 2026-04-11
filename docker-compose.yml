@@ -36,7 +36,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SERVER_URL: http://evolution:8080
+      SERVER_URL: https://evolution.codermaster.com.br
       AUTHENTICATION_TYPE: apikey
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-chave_evolution_aqui}
       DATABASE_ENABLED: "true"
