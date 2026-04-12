@@ -19,6 +19,8 @@ async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioB
     }
 
     if (!userMessage || userMessage.trim() === '') {
+      // Mídia não suportada (imagem, vídeo, sticker…)
+      await evolution.sendText(phone, 'Olá! 😊 Consigo responder mensagens de texto e áudio. Pode me enviar sua dúvida por texto ou áudio!');
       return;
     }
 

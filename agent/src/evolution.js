@@ -34,19 +34,31 @@ async function createUser() {
 }
 
 async function sendText(phone, text) {
-  const res = await axios.post(`${BASE_URL}/chat/send/text`, {
-    Phone: phone,
-    Body: text,
-  }, { headers: userHeaders });
-  return res.data;
+  try {
+    const res = await axios.post(`${BASE_URL}/chat/send/text`, {
+      Phone: phone,
+      Body: text,
+    }, { headers: userHeaders });
+    console.log('[WuzAPI] sendText OK:', JSON.stringify(res.data));
+    return res.data;
+  } catch (err) {
+    console.error('[WuzAPI] sendText ERRO:', err.response?.status, JSON.stringify(err.response?.data));
+    throw err;
+  }
 }
 
 async function sendAudio(phone, base64Audio) {
-  const res = await axios.post(`${BASE_URL}/chat/send/audio`, {
-    Phone: phone,
-    Audio: `data:audio/ogg;base64,${base64Audio}`,
-  }, { headers: userHeaders });
-  return res.data;
+  try {
+    const res = await axios.post(`${BASE_URL}/chat/send/audio`, {
+      Phone: phone,
+      Audio: base64Audio,
+    }, { headers: userHeaders });
+    console.log('[WuzAPI] sendAudio OK:', JSON.stringify(res.data));
+    return res.data;
+  } catch (err) {
+    console.error('[WuzAPI] sendAudio ERRO:', err.response?.status, JSON.stringify(err.response?.data));
+    throw err;
+  }
 }
 
 async function downloadMedia(messageId, audioMessage) {
