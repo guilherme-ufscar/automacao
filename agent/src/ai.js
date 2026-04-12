@@ -1,6 +1,7 @@
 require('dotenv').config();
 const OpenAI = require('openai');
 const { Readable } = require('stream');
+const { spawn } = require('child_process');
 const db = require('./db');
 const prompts = require('./prompts');
 
@@ -38,6 +39,25 @@ async function transcribe(audioBuffer) {
   return transcription.text;
 }
 
+function convertToOggOpus(inputBuffer) {
+  return new Promise((resolve, reject) => {
+    const ff = spawn('ffmpeg', [
+      '-i', 'pipe:0',
+      '-c:a', 'libopus',
+      '-b:a', '64k',
+      '-f', 'ogg',
+      'pipe:1',
+    ]);
+    const chunks = [];
+    ff.stdout.on('data', chunk => chunks.push(chunk));
+    ff.stdout.on('end', () => resolve(Buffer.concat(chunks)));
+    ff.stderr.on('data', () => {});
+    ff.on('error', reject);
+    ff.stdin.write(inputBuffer);
+    ff.stdin.end();
+  });
+}
+
 async function textToSpeech(text) {
   const response = await openai.audio.speech.create({
     model: 'tts-1',
@@ -46,8 +66,9 @@ async function textToSpeech(text) {
     response_format: 'mp3',
   });
 
-  const buffer = Buffer.from(await response.arrayBuffer());
-  return buffer.toString('base64');
+  const mp3Buffer = Buffer.from(await response.arrayBuffer());
+  const oggBuffer = await convertToOggOpus(mp3Buffer);
+  return oggBuffer.toString('base64');
 }
 
 module.exports = { chat, transcribe, textToSpeech };
