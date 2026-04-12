@@ -38,6 +38,13 @@ async function initDB() {
     CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
     CREATE INDEX IF NOT EXISTS idx_leads_segment ON leads(segment);
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS agent_config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
   console.log('[DB] Tabelas inicializadas');
 }
 
@@ -162,6 +169,18 @@ async function getStats() {
   };
 }
 
+async function getConfig(key) {
+  const { rows } = await pool.query('SELECT value FROM agent_config WHERE key = $1', [key]);
+  return rows[0]?.value || null;
+}
+
+async function setConfig(key, value) {
+  await pool.query(`
+    INSERT INTO agent_config (key, value, updated_at) VALUES ($1, $2, NOW())
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+  `, [key, value]);
+}
+
 module.exports = {
   pool,
   initDB,
@@ -174,4 +193,6 @@ module.exports = {
   getAllLeads,
   getLeadWithHistory,
   getStats,
+  getConfig,
+  setConfig,
 };

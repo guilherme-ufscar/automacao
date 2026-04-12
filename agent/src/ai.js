@@ -11,7 +11,7 @@ async function chat(phone, userMessage) {
   const history = await db.getLastMessages(phone, 10); // MAX 10 — nunca alterar
   const lead = await db.getLead(phone);
   const segment = lead ? lead.segment : 'desconhecido';
-  const systemPrompt = prompts.getPrompt(segment);
+  const systemPrompt = await prompts.getPrompt(segment);
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini', // nunca trocar para outro modelo

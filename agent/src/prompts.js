@@ -129,8 +129,17 @@ FECHAMENTO:
 Quando classificar: [STATUS:quente] ou [STATUS:morno] ou [STATUS:frio]`,
 };
 
-function getPrompt(segment) {
+async function getPrompt(segment) {
+  try {
+    const db = require('./db');
+    const custom = await db.getConfig(`prompt_${segment}`);
+    if (custom) return custom;
+  } catch (e) { /* fallback to static */ }
   return PROMPTS[segment] || PROMPTS.desconhecido;
 }
 
-module.exports = { getPrompt };
+function getDefault(segment) {
+  return PROMPTS[segment] || PROMPTS.desconhecido;
+}
+
+module.exports = { getPrompt, getDefault, PROMPTS };

@@ -1,345 +1,638 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CRM — Alcântara Negócios Imobiliários</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
+/* ── DESIGN SYSTEM: OBSIDIAN ARCHITECT ── */
 :root {
-  --bg: #0a1628; --sidebar: #0d1e35; --card: #112240; --card2: #152a4a;
-  --border: #1e3a5f; --accent: #a3e635; --accent-dim: rgba(163,230,53,.12);
-  --text: #f1f5f9; --muted: #64748b;
-  --quente: #22c55e; --morno: #f59e0b; --frio: #ef4444; --novo: #94a3b8;
-  --mcmv: #3b82f6; --leilao: #8b5cf6; --reg: #f97316;
+  --bg:       #071325;
+  --surface:  #101c2e;
+  --sidebar:  #142032;
+  --card:     #1f2a3d;
+  --card-hi:  #2a3548;
+  --card-lo:  #030e20;
+  --bright:   #2e394d;
+  --primary:  #ccff80;
+  --accent:   #a3e635;
+  --accent-bg:rgba(163,230,53,.08);
+  --accent-glow:rgba(163,230,53,.15);
+  --text:     #d7e3fc;
+  --muted:    #c2cab0;
+  --border:   rgba(66,73,54,.35);
+  --quente:   #4ade80;
+  --quente-bg:rgba(74,222,128,.1);
+  --morno:    #facc15;
+  --morno-bg: rgba(250,204,21,.1);
+  --frio:     #f87171;
+  --frio-bg:  rgba(248,113,113,.1);
+  --mcmv:     #93c5fd;
+  --mcmv-bg:  rgba(147,197,253,.1);
+  --leilao:   #d8b4fe;
+  --leilao-bg:rgba(216,180,254,.1);
+  --reg:      #fb923c;
+  --reg-bg:   rgba(251,146,60,.1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
 
-/* SIDEBAR */
-.sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-.sidebar-logo{padding:20px;border-bottom:1px solid var(--border)}
-.sidebar-logo h2{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.5px}
-.sidebar-logo p{font-size:11px;color:var(--muted);margin-top:2px}
+/* ── LOGIN ─────────────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 20%,rgba(163,230,53,.06) 0%,transparent 60%),var(--bg);
+  z-index:999;
+}
+.login-card{
+  background:var(--card);border-radius:16px;padding:40px;width:380px;
+  box-shadow:0 40px 80px rgba(0,0,0,.4),0 0 0 1px var(--border);
+}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .icon-wrap{
+  width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;
+}
+.login-logo h1{font-size:18px;font-weight:700;margin-bottom:4px}
+.login-logo p{font-size:12px;color:var(--muted)}
+.login-field{position:relative;margin-bottom:16px}
+.login-field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.login-field input{
+  width:100%;background:var(--card-lo);border:1px solid rgba(66,73,54,.2);
+  border-radius:8px;padding:11px 40px 11px 14px;color:var(--text);font-size:14px;
+  font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.login-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(163,230,53,.1)}
+.pw-toggle{position:absolute;right:12px;bottom:11px;background:none;border:none;color:var(--muted);cursor:pointer;display:flex}
+.login-btn{
+  width:100%;padding:12px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#071325;font-size:14px;font-weight:600;transition:opacity .2s,transform .1s;
+}
+.login-btn:hover{opacity:.9}.login-btn:active{transform:scale(.98)}
+.login-error{color:var(--frio);font-size:12px;text-align:center;margin-top:10px;min-height:16px}
+
+/* ── APP LAYOUT ────────────────────────────────────────── */
+#main-app{display:none;height:100vh;flex-direction:row}
+#main-app.visible{display:flex}
+.sidebar{
+  width:224px;background:var(--sidebar);flex-shrink:0;
+  display:flex;flex-direction:column;
+}
+.sidebar-logo{padding:20px 18px;border-bottom:1px solid var(--border)}
+.sidebar-logo .brand{display:flex;align-items:center;gap:10px}
+.brand-icon{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+}
+.brand-text h2{font-size:13px;font-weight:700;color:var(--text)}
+.brand-text p{font-size:10px;color:var(--muted)}
 .sidebar-nav{padding:10px 0;flex:1}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;font-size:13px;color:var(--muted);border-left:3px solid transparent;transition:all .15s}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;
+  font-size:13px;color:var(--muted);border-left:2px solid transparent;
+  transition:all .15s;margin-bottom:1px;
+}
 .nav-item:hover{background:rgba(163,230,53,.05);color:var(--text)}
-.nav-item.active{background:var(--accent-dim);color:var(--accent);border-left-color:var(--accent)}
-.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
-.bot-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:6px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.nav-item.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border)}
+.bot-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.bot-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(163,230,53,.4)}50%{opacity:.6;box-shadow:0 0 0 4px rgba(163,230,53,0)}}
+.logout-btn{
+  display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;
+  color:var(--muted);font-size:12px;cursor:pointer;padding:6px 0;font-family:inherit;
+  transition:color .15s;
+}
+.logout-btn:hover{color:var(--frio)}
+.logout-btn svg{width:14px;height:14px}
 
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--sidebar);flex-shrink:0}
-.topbar h1{font-size:17px;font-weight:600}
-.topbar-right{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
-.content{flex:1;overflow-y:auto;padding:22px}
+/* ── MAIN ───────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+.topbar{
+  padding:14px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--sidebar);flex-shrink:0;
+}
+.topbar h1{font-size:16px;font-weight:500;letter-spacing:-.01em}
+.topbar-right{display:flex;gap:10px;align-items:center}
+.topbar-time{font-size:11px;color:var(--muted)}
+.content{flex:1;overflow-y:auto;padding:24px}
 .page{display:none}.page.active{display:block}
 
-/* STAT GRID */
+/* ── STAT CARDS ─────────────────────────────────────────── */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+.stat-card{
+  background:var(--card);border-radius:12px;padding:20px;
+  transition:transform .15s,box-shadow .15s;cursor:default;
+}
+.stat-card:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.stat-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-icon{
+  width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+}
+.stat-icon svg{width:18px;height:18px}
 .stat-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.stat-card .value{font-size:28px;font-weight:700;margin:6px 0 3px}
+.stat-card .value{font-size:30px;font-weight:700;margin:4px 0 2px;letter-spacing:-.02em}
 .stat-card .sub{font-size:11px;color:var(--muted)}
 
-/* SECTION */
-.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.section-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+/* ── SECTION ────────────────────────────────────────────── */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
 
-/* LEADS */
+/* ── TABLE ──────────────────────────────────────────────── */
+.table-wrap{background:var(--card);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid rgba(66,73,54,.2);font-size:12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(163,230,53,.025);cursor:pointer}
+
+/* ── LEADS ──────────────────────────────────────────────── */
 .leads-header{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
-.search-box{flex:1;min-width:180px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none}
-.search-box:focus{border-color:var(--accent)}
-select.filter{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;cursor:pointer;outline:none}
+.search-box{
+  flex:1;min-width:180px;background:var(--card);border:1px solid rgba(66,73,54,.2);
+  border-radius:8px;padding:9px 12px 9px 36px;color:var(--text);font-size:13px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.search-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(163,230,53,.1)}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted)}
+select.filter{
+  background:var(--card);border:1px solid rgba(66,73,54,.2);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:13px;cursor:pointer;outline:none;
+  transition:border-color .2s;
+}
 select.filter:focus{border-color:var(--accent)}
 
-/* LEAD CARD */
-.lead-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:7px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
-.lead-card:hover{border-color:var(--accent);background:var(--card2)}
-.lead-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+/* ── LEAD CARD ──────────────────────────────────────────── */
+.lead-card{
+  background:var(--card);border-radius:10px;padding:14px 16px;margin-bottom:6px;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;
+}
+.lead-card:hover{background:var(--card-hi);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.lead-avatar{
+  width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;
+}
 .lead-info{flex:1;min-width:0}
-.lead-name{font-size:14px;font-weight:600;margin-bottom:2px}
-.lead-phone{font-size:11px;color:var(--muted);margin-bottom:3px}
-.lead-last-msg{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
-.lead-meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
-.lead-time{font-size:11px;color:var(--muted)}
+.lead-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.lead-phone{font-size:11px;color:var(--muted);margin-bottom:2px}
+.lead-last-msg{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+.lead-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.lead-time{font-size:10px;color:var(--muted)}
 
-/* BADGES */
-.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.2px;white-space:nowrap}
-.badge-quente{background:rgba(34,197,94,.15);color:var(--quente)}
-.badge-morno{background:rgba(245,158,11,.15);color:var(--morno)}
-.badge-frio{background:rgba(239,68,68,.15);color:var(--frio)}
-.badge-novo{background:rgba(148,163,184,.15);color:var(--novo)}
-.badge-mcmv{background:rgba(59,130,246,.15);color:var(--mcmv)}
-.badge-leilao{background:rgba(139,92,246,.15);color:var(--leilao)}
-.badge-regularizacao{background:rgba(249,115,22,.15);color:var(--reg)}
-.badge-desconhecido{background:rgba(100,116,139,.15);color:var(--muted)}
+/* ── BADGES ─────────────────────────────────────────────── */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.badge-quente{background:var(--quente-bg);color:var(--quente)}
+.badge-morno{background:var(--morno-bg);color:var(--morno)}
+.badge-frio{background:var(--frio-bg);color:var(--frio)}
+.badge-novo{background:rgba(148,163,184,.1);color:#94a3b8}
+.badge-mcmv{background:var(--mcmv-bg);color:var(--mcmv)}
+.badge-leilao{background:var(--leilao-bg);color:var(--leilao)}
+.badge-regularizacao{background:var(--reg-bg);color:var(--reg)}
+.badge-desconhecido{background:rgba(100,116,139,.1);color:var(--muted)}
 
-/* BUTTONS */
-.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
-.btn-primary{background:var(--accent);color:#0a1628}
-.btn-primary:hover{background:#b8f552}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+/* ── BUTTONS ────────────────────────────────────────────── */
+.btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#071325}
+.btn-primary:hover{opacity:.9;box-shadow:0 4px 12px rgba(163,230,53,.3)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-.btn-danger{background:rgba(239,68,68,.12);color:var(--frio);border:1px solid rgba(239,68,68,.25)}
+.btn-danger{background:var(--frio-bg);color:var(--frio);border:1px solid rgba(248,113,113,.2)}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
 .btn-wa{background:#25d366;color:#fff}
-.btn-wa:hover{background:#20bd5a}
+.btn-wa:hover{background:#1fb85a}
 .btn-sm{padding:5px 10px;font-size:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* TABLE */
-.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-table{width:100%;border-collapse:collapse}
-th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border)}
-td{padding:10px 12px;border-bottom:1px solid rgba(30,58,95,.4);font-size:12px}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(163,230,53,.02)}
-tr{cursor:pointer}
-
-/* PANEL */
-.lead-panel{position:fixed;top:0;right:-580px;width:580px;height:100vh;background:var(--sidebar);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:right .28s ease;z-index:100}
+/* ── LEAD PANEL ─────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;display:none;backdrop-filter:blur(2px)}
+.overlay.show{display:block}
+.lead-panel{
+  position:fixed;top:0;right:-600px;width:600px;height:100vh;
+  background:var(--sidebar);display:flex;flex-direction:column;
+  transition:right .28s cubic-bezier(.4,0,.2,1);z-index:100;
+  box-shadow:-20px 0 60px rgba(0,0,0,.4);
+}
 .lead-panel.open{right:0}
-.panel-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-header{
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
 .panel-lead-info{display:flex;align-items:center;gap:12px}
-.panel-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;transition:color .15s}
-.panel-close:hover{color:var(--text)}
-.panel-actions{padding:10px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.panel-close{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:6px;display:flex;transition:all .15s}
+.panel-close:hover{background:var(--card);color:var(--text)}
+.panel-close svg{width:18px;height:18px}
+.panel-actions{
+  padding:10px 20px;border-bottom:1px solid var(--border);
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0;
+}
+.status-select,.seg-select{
+  background:var(--card);border:1px solid rgba(66,73,54,.2);border-radius:7px;
+  padding:6px 10px;color:var(--text);font-size:12px;cursor:pointer;outline:none;
+  transition:border-color .2s;font-family:inherit;
+}
+.status-select:focus,.seg-select:focus{border-color:var(--accent)}
 .panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-.tab-btn{padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;font-family:inherit}
+.tab-btn{
+  padding:11px 18px;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);cursor:pointer;font-size:12px;font-weight:500;
+  transition:all .15s;font-family:inherit;
+}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
-.panel-body{flex:1;overflow-y:auto;padding:18px}
+.panel-body{flex:1;overflow-y:auto;padding:20px}
 .tab-content{display:none}.tab-content.active{display:block}
 
-/* INFO GRID */
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.info-item{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 12px}
+/* ── INFO GRID ──────────────────────────────────────────── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.info-item{background:var(--card);border-radius:8px;padding:11px 13px}
 .info-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 .info-item .val{font-size:13px;font-weight:500;margin-top:3px}
 
-/* CHAT */
-.chat-messages{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.msg{max-width:85%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5}
-.msg-user{background:var(--card);border:1px solid var(--border);align-self:flex-start;border-radius:10px 10px 10px 2px}
-.msg-assistant{background:rgba(163,230,53,.1);border:1px solid rgba(163,230,53,.2);align-self:flex-end;border-radius:10px 10px 2px 10px}
+/* ── CHAT ───────────────────────────────────────────────── */
+.chat-messages{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;min-height:60px}
+.msg{max-width:82%;padding:9px 13px;border-radius:10px;font-size:12px;line-height:1.55}
+.msg-user{background:var(--card);align-self:flex-start;border-radius:10px 10px 10px 2px}
+.msg-assistant{background:rgba(163,230,53,.1);border:1px solid rgba(163,230,53,.15);align-self:flex-end;border-radius:10px 10px 2px 10px}
 .msg-time{font-size:10px;color:var(--muted);margin-top:3px}
-.send-box{display:flex;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px}
-.send-input{flex:1;background:none;border:none;color:var(--text);font-size:13px;outline:none;resize:none;font-family:inherit}
+.send-box{background:var(--card);border-radius:10px;padding:10px;display:flex;gap:8px}
+.send-input{flex:1;background:none;border:none;color:var(--text);font-size:13px;outline:none;resize:none;font-family:inherit;line-height:1.4}
 
-/* FORM */
+/* ── FORMS ──────────────────────────────────────────────── */
 .form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
-.form-input,.form-textarea,.form-select,.status-select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
-.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--accent)}
-.form-textarea{resize:vertical;min-height:90px}
-.status-select{width:auto;padding:5px 10px;font-size:12px;cursor:pointer}
+.form-group label{display:block;font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.form-input,.form-textarea,.form-select{
+  width:100%;background:var(--card-lo);border:1px solid rgba(66,73,54,.2);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(163,230,53,.1)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-textarea.large{min-height:220px}
 
-/* AGENDA */
-.agenda-card{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px}
-.agenda-date-box{background:var(--accent-dim);border:1px solid rgba(163,230,53,.25);border-radius:7px;padding:9px 12px;text-align:center;flex-shrink:0;min-width:56px}
+/* ── AGENDA ─────────────────────────────────────────────── */
+.agenda-card{background:var(--card);border-radius:10px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px}
+.agenda-date-box{
+  background:var(--accent-bg);border:1px solid rgba(163,230,53,.2);
+  border-radius:8px;padding:9px 12px;text-align:center;flex-shrink:0;min-width:54px;
+}
 .agenda-date-box .day{font-size:20px;font-weight:700;color:var(--accent);line-height:1}
 .agenda-date-box .month{font-size:10px;text-transform:uppercase;color:var(--muted)}
 .agenda-date-box .time{font-size:11px;color:var(--accent);margin-top:2px}
 
-/* PAGINATION */
-.pagination{display:flex;gap:6px;justify-content:center;margin-top:16px;align-items:center}
-.page-btn{padding:5px 10px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);cursor:pointer;font-size:12px;transition:all .15s;font-family:inherit}
-.page-btn:hover,.page-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+/* ── CONFIG PAGE ────────────────────────────────────────── */
+.config-header{
+  background:linear-gradient(135deg,rgba(163,230,53,.08),rgba(163,230,53,.03));
+  border:1px solid rgba(163,230,53,.15);border-radius:12px;
+  padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:16px;
+}
+.config-header svg{width:28px;height:28px;color:var(--accent);flex-shrink:0}
+.config-tabs{display:flex;gap:4px;margin-bottom:18px;background:var(--card);padding:4px;border-radius:10px;width:fit-content}
+.config-tab{
+  padding:8px 16px;border-radius:7px;border:none;background:none;cursor:pointer;
+  font-size:12px;font-weight:500;color:var(--muted);transition:all .15s;font-family:inherit;
+}
+.config-tab.active{background:var(--card-hi);color:var(--accent)}
+.config-save-row{display:flex;gap:10px;align-items:center;margin-top:14px}
+.config-updated{font-size:11px;color:var(--muted)}
+
+/* ── PAGINATION ─────────────────────────────────────────── */
+.pagination{display:flex;gap:6px;justify-content:center;margin-top:16px}
+.page-btn{
+  padding:6px 11px;background:var(--card);border:1px solid rgba(66,73,54,.2);
+  border-radius:6px;color:var(--muted);cursor:pointer;font-size:12px;
+  transition:all .15s;font-family:inherit;
+}
+.page-btn:hover,.page-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
 .page-btn:disabled{opacity:.35;cursor:not-allowed}
 
-/* EMPTY */
+/* ── MISC ───────────────────────────────────────────────── */
 .empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
-.empty-state .icon{font-size:40px;margin-bottom:10px}
-.empty-state p{font-size:13px}
-
-/* OVERLAY */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:none}
-.overlay.show{display:block}
-
-/* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:12px;z-index:200;transform:translateY(80px);opacity:0;transition:all .25s}
+.empty-state svg{width:40px;height:40px;margin-bottom:10px;opacity:.4}
+.info-box{background:var(--accent-bg);border:1px solid rgba(163,230,53,.2);border-radius:8px;padding:10px 14px;font-size:12px}
+.warn-box{background:var(--frio-bg);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--frio)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--card-hi);border-radius:9px;padding:12px 18px;font-size:12px;z-index:300;transform:translateY(80px);opacity:0;transition:all .25s;display:flex;align-items:center;gap:8px}
+.toast svg{width:16px;height:16px}
 .toast.show{transform:translateY(0);opacity:1}
-.toast.success{border-color:var(--quente);color:var(--quente)}
-.toast.error{border-color:var(--frio);color:var(--frio)}
-
-/* SCROLLBAR */
+.toast.success{border:1px solid rgba(74,222,128,.3);color:var(--quente)}
+.toast.error{border:1px solid rgba(248,113,113,.3);color:var(--frio)}
+.toast.info{border:1px solid rgba(163,230,53,.3);color:var(--accent)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--muted)}
-
-/* INFO BOX */
-.info-box{background:var(--accent-dim);border:1px solid rgba(163,230,53,.3);border-radius:7px;padding:10px 14px;font-size:12px;margin-top:10px}
-.warn-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:10px 14px;font-size:12px}
+::-webkit-scrollbar-thumb:hover{background:rgba(66,73,54,.6)}
 </style>
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <h2>🏡 ALCÂNTARA CRM</h2>
-    <p>Negócios Imobiliários</p>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-item active" onclick="navigate('dashboard')">📊 Dashboard</div>
-    <div class="nav-item" onclick="navigate('leads')">👥 Leads</div>
-    <div class="nav-item" onclick="navigate('agendamentos')">📅 Agendamentos</div>
-  </nav>
-  <div class="sidebar-footer">
-    <div><span class="bot-dot"></span>Karina ativa</div>
-    <div style="margin-top:4px" id="footer-update"></div>
-  </div>
-</aside>
-
-<main class="main">
-  <div class="topbar">
-    <h1 id="page-title">Dashboard</h1>
-    <div class="topbar-right">
-      <span id="last-update"></span>
-      <button class="btn btn-ghost btn-sm" onclick="refresh()">↻ Atualizar</button>
+<!-- ── LOGIN ──────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon-wrap"><i data-lucide="building-2" style="width:24px;height:24px;color:#071325"></i></div>
+      <h1>Alcântara CRM</h1>
+      <p>Negócios Imobiliários</p>
     </div>
+    <div class="login-field">
+      <label>Senha de acesso</label>
+      <input type="password" id="login-pw" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="pw-toggle" onclick="togglePw()"><i data-lucide="eye" id="pw-eye"></i></button>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar no CRM</button>
+    <div class="login-error" id="login-error"></div>
   </div>
+</div>
 
-  <div class="content">
-
-    <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page active">
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Total de Leads</div><div class="value" id="s-total" style="color:var(--accent)">—</div><div class="sub">todos os contatos</div></div>
-        <div class="stat-card"><div class="label">🟢 Quentes</div><div class="value" id="s-quente" style="color:var(--quente)">—</div><div class="sub">prontos para fechar</div></div>
-        <div class="stat-card"><div class="label">🟡 Mornos</div><div class="value" id="s-morno" style="color:var(--morno)">—</div><div class="sub">em negociação</div></div>
-        <div class="stat-card"><div class="label">🔴 Frios</div><div class="value" id="s-frio" style="color:var(--frio)">—</div><div class="sub">em nutrição</div></div>
+<!-- ── APP ────────────────────────────────────────────── -->
+<div id="main-app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">
+        <div class="brand-icon"><i data-lucide="building-2" style="width:16px;height:16px;color:#071325"></i></div>
+        <div class="brand-text"><h2>Alcântara</h2><p>CRM Imobiliário</p></div>
       </div>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">📅 Hoje</div><div class="value" id="s-hoje" style="color:var(--accent)">—</div><div class="sub">novos leads</div></div>
-        <div class="stat-card"><div class="label">🏠 MCMV</div><div class="value" id="s-mcmv" style="color:var(--mcmv)">—</div><div class="sub">Minha Casa Minha Vida</div></div>
-        <div class="stat-card"><div class="label">🔨 Leilão</div><div class="value" id="s-leilao" style="color:var(--leilao)">—</div><div class="sub">imóveis em leilão</div></div>
-        <div class="stat-card"><div class="label">📋 Regularização</div><div class="value" id="s-reg" style="color:var(--reg)">—</div><div class="sub">regularização</div></div>
-      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard"></i> Dashboard</div>
+      <div class="nav-item" onclick="navigate('leads')"><i data-lucide="users"></i> Leads</div>
+      <div class="nav-item" onclick="navigate('agendamentos')"><i data-lucide="calendar"></i> Agendamentos</div>
+      <div class="nav-item" onclick="navigate('config')"><i data-lucide="bot"></i> Configurar Agente</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="bot-status"><div class="bot-dot"></div><span>Karina online</span></div>
+      <div id="sidebar-update" style="font-size:10px;color:var(--muted);margin-bottom:8px"></div>
+      <button class="logout-btn" onclick="doLogout()"><i data-lucide="log-out"></i> Sair</button>
+    </div>
+  </aside>
 
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px">
-        <div>
-          <div class="section-header">
-            <div class="section-title">Últimos leads</div>
-            <button class="btn btn-ghost btn-sm" onclick="navigate('leads')">Ver todos →</button>
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <h1 id="page-title">Dashboard</h1>
+      <div class="topbar-right">
+        <span class="topbar-time" id="last-update"></span>
+        <button class="btn btn-ghost btn-sm" onclick="refresh()"><i data-lucide="refresh-cw"></i> Atualizar</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">Total de Leads</div>
+              <div class="stat-icon" style="background:var(--accent-bg)"><i data-lucide="users-2" style="color:var(--accent)"></i></div>
+            </div>
+            <div class="value" id="s-total" style="color:var(--accent)">—</div>
+            <div class="sub">todos os contatos</div>
           </div>
-          <div class="table-wrap">
-            <table><thead><tr><th>Nome</th><th>Telefone</th><th>Segmento</th><th>Status</th><th>Última mensagem</th><th>Data</th></tr></thead>
-            <tbody id="recent-tbody"></tbody></table>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">🟢 Quentes</div>
+              <div class="stat-icon" style="background:var(--quente-bg)"><i data-lucide="flame" style="color:var(--quente)"></i></div>
+            </div>
+            <div class="value" id="s-quente" style="color:var(--quente)">—</div>
+            <div class="sub">prontos para fechar</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">🟡 Mornos</div>
+              <div class="stat-icon" style="background:var(--morno-bg)"><i data-lucide="thermometer" style="color:var(--morno)"></i></div>
+            </div>
+            <div class="value" id="s-morno" style="color:var(--morno)">—</div>
+            <div class="sub">em negociação</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">🔴 Frios</div>
+              <div class="stat-icon" style="background:var(--frio-bg)"><i data-lucide="snowflake" style="color:var(--frio)"></i></div>
+            </div>
+            <div class="value" id="s-frio" style="color:var(--frio)">—</div>
+            <div class="sub">em nutrição</div>
           </div>
         </div>
-        <div>
-          <div class="section-header">
-            <div class="section-title">Próximos agendamentos</div>
-            <button class="btn btn-ghost btn-sm" onclick="navigate('agendamentos')">Ver todos →</button>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">Hoje</div>
+              <div class="stat-icon" style="background:var(--accent-bg)"><i data-lucide="calendar-days" style="color:var(--accent)"></i></div>
+            </div>
+            <div class="value" id="s-hoje" style="color:var(--accent)">—</div>
+            <div class="sub">novos leads hoje</div>
           </div>
-          <div id="upcoming-list"></div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">MCMV</div>
+              <div class="stat-icon" style="background:var(--mcmv-bg)"><i data-lucide="home" style="color:var(--mcmv)"></i></div>
+            </div>
+            <div class="value" id="s-mcmv" style="color:var(--mcmv)">—</div>
+            <div class="sub">Minha Casa Minha Vida</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">Leilão</div>
+              <div class="stat-icon" style="background:var(--leilao-bg)"><i data-lucide="gavel" style="color:var(--leilao)"></i></div>
+            </div>
+            <div class="value" id="s-leilao" style="color:var(--leilao)">—</div>
+            <div class="sub">imóveis em leilão</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <div class="label">Regularização</div>
+              <div class="stat-icon" style="background:var(--reg-bg)"><i data-lucide="file-check" style="color:var(--reg)"></i></div>
+            </div>
+            <div class="value" id="s-reg" style="color:var(--reg)">—</div>
+            <div class="sub">regularização</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:18px">
+          <div>
+            <div class="section-header">
+              <div class="section-title">Últimos leads</div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('leads')"><i data-lucide="arrow-right"></i> Ver todos</button>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Nome</th><th>Telefone</th><th>Segmento</th><th>Status</th><th>Última mensagem</th><th>Data</th></tr></thead>
+              <tbody id="recent-tbody"></tbody></table>
+            </div>
+          </div>
+          <div>
+            <div class="section-header">
+              <div class="section-title">Próximos agendamentos</div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('agendamentos')"><i data-lucide="arrow-right"></i></button>
+            </div>
+            <div id="upcoming-list"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- LEADS -->
-    <div id="page-leads" class="page">
-      <div class="leads-header">
-        <input type="text" class="search-box" id="search-input" placeholder="🔍  Buscar por nome ou telefone..." oninput="debounceSearch()">
-        <select class="filter" id="filter-status" onchange="loadLeads()">
-          <option value="">Todos os status</option>
-          <option value="novo">⚪ Novo</option>
-          <option value="quente">🟢 Quente</option>
-          <option value="morno">🟡 Morno</option>
-          <option value="frio">🔴 Frio</option>
-        </select>
-        <select class="filter" id="filter-segment" onchange="loadLeads()">
-          <option value="">Todos os segmentos</option>
-          <option value="mcmv">🏠 MCMV</option>
-          <option value="leilao">🔨 Leilão</option>
-          <option value="regularizacao">📋 Regularização</option>
-          <option value="desconhecido">❓ Desconhecido</option>
-        </select>
+      <!-- LEADS -->
+      <div id="page-leads" class="page">
+        <div class="leads-header">
+          <div class="search-wrap">
+            <i data-lucide="search"></i>
+            <input type="text" class="search-box" id="search-input" placeholder="Buscar por nome ou telefone…" oninput="debounceSearch()">
+          </div>
+          <select class="filter" id="filter-status" onchange="loadLeads()">
+            <option value="">Todos os status</option>
+            <option value="novo">⚪ Novo</option>
+            <option value="quente">🟢 Quente</option>
+            <option value="morno">🟡 Morno</option>
+            <option value="frio">🔴 Frio</option>
+          </select>
+          <select class="filter" id="filter-segment" onchange="loadLeads()">
+            <option value="">Todos os segmentos</option>
+            <option value="mcmv">🏠 MCMV</option>
+            <option value="leilao">🔨 Leilão</option>
+            <option value="regularizacao">📋 Regularização</option>
+            <option value="desconhecido">❓ Desconhecido</option>
+          </select>
+        </div>
+        <div id="leads-count" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
+        <div id="leads-list"></div>
+        <div class="pagination" id="pagination"></div>
       </div>
-      <div id="leads-count" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
-      <div id="leads-list"></div>
-      <div class="pagination" id="pagination"></div>
-    </div>
 
-    <!-- AGENDAMENTOS -->
-    <div id="page-agendamentos" class="page">
-      <div id="agenda-list"></div>
-    </div>
+      <!-- AGENDAMENTOS -->
+      <div id="page-agendamentos" class="page">
+        <div id="agenda-list"></div>
+      </div>
 
-  </div>
-</main>
+      <!-- CONFIG AGENTE -->
+      <div id="page-config" class="page">
+        <div class="config-header">
+          <i data-lucide="bot"></i>
+          <div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">Configurações da Karina</div>
+            <div style="font-size:12px;color:var(--muted)">Personalize as instruções do agente de IA para cada segmento. As alterações entram em vigor imediatamente.</div>
+          </div>
+        </div>
 
-<!-- OVERLAY -->
+        <div class="form-group" style="max-width:400px">
+          <label>Nome do agente</label>
+          <input type="text" class="form-input" id="cfg-agent-name" placeholder="Ex: Karina">
+        </div>
+
+        <div class="section-title" style="margin-bottom:12px">Instruções por segmento</div>
+
+        <div class="config-tabs">
+          <button class="config-tab active" onclick="switchConfigTab('desconhecido')">Geral</button>
+          <button class="config-tab" onclick="switchConfigTab('mcmv')">🏠 MCMV</button>
+          <button class="config-tab" onclick="switchConfigTab('leilao')">🔨 Leilão</button>
+          <button class="config-tab" onclick="switchConfigTab('regularizacao')">📋 Regularização</button>
+        </div>
+
+        <div id="config-tab-desconhecido" class="config-tab-content active-cfg">
+          <div class="form-group">
+            <label>Prompt — Atendimento geral / identificação de interesse</label>
+            <textarea class="form-textarea large" id="prompt-desconhecido" placeholder="Deixe vazio para usar o padrão do sistema…"></textarea>
+          </div>
+          <div class="config-save-row">
+            <button class="btn btn-primary" onclick="savePrompt('desconhecido')"><i data-lucide="save"></i> Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetPrompt('desconhecido')"><i data-lucide="rotate-ccw"></i> Restaurar padrão</button>
+            <span class="config-updated" id="updated-desconhecido"></span>
+          </div>
+        </div>
+
+        <div id="config-tab-mcmv" class="config-tab-content" style="display:none">
+          <div class="form-group">
+            <label>Prompt — Minha Casa Minha Vida</label>
+            <textarea class="form-textarea large" id="prompt-mcmv" placeholder="Deixe vazio para usar o padrão do sistema…"></textarea>
+          </div>
+          <div class="config-save-row">
+            <button class="btn btn-primary" onclick="savePrompt('mcmv')"><i data-lucide="save"></i> Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetPrompt('mcmv')"><i data-lucide="rotate-ccw"></i> Restaurar padrão</button>
+            <span class="config-updated" id="updated-mcmv"></span>
+          </div>
+        </div>
+
+        <div id="config-tab-leilao" class="config-tab-content" style="display:none">
+          <div class="form-group">
+            <label>Prompt — Leilão de Imóveis</label>
+            <textarea class="form-textarea large" id="prompt-leilao" placeholder="Deixe vazio para usar o padrão do sistema…"></textarea>
+          </div>
+          <div class="config-save-row">
+            <button class="btn btn-primary" onclick="savePrompt('leilao')"><i data-lucide="save"></i> Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetPrompt('leilao')"><i data-lucide="rotate-ccw"></i> Restaurar padrão</button>
+            <span class="config-updated" id="updated-leilao"></span>
+          </div>
+        </div>
+
+        <div id="config-tab-regularizacao" class="config-tab-content" style="display:none">
+          <div class="form-group">
+            <label>Prompt — Regularização de Imóveis</label>
+            <textarea class="form-textarea large" id="prompt-regularizacao" placeholder="Deixe vazio para usar o padrão do sistema…"></textarea>
+          </div>
+          <div class="config-save-row">
+            <button class="btn btn-primary" onclick="savePrompt('regularizacao')"><i data-lucide="save"></i> Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetPrompt('regularizacao')"><i data-lucide="rotate-ccw"></i> Restaurar padrão</button>
+            <span class="config-updated" id="updated-regularizacao"></span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /main-app -->
+
+<!-- OVERLAY + PANEL -->
 <div class="overlay" id="overlay" onclick="closePanel()"></div>
-
-<!-- LEAD PANEL -->
 <div class="lead-panel" id="lead-panel">
   <div class="panel-header">
     <div class="panel-lead-info">
-      <div class="lead-avatar" id="panel-avatar" style="background:#1e3a5f;width:46px;height:46px;font-size:16px">?</div>
+      <div class="lead-avatar" id="panel-avatar" style="background:#1e3a5f;width:44px;height:44px;font-size:14px">?</div>
       <div>
         <div style="font-size:15px;font-weight:600" id="panel-name">—</div>
         <div style="font-size:11px;color:var(--muted)" id="panel-phone">—</div>
       </div>
     </div>
-    <button class="panel-close" onclick="closePanel()">✕</button>
+    <button class="panel-close" onclick="closePanel()"><i data-lucide="x"></i></button>
   </div>
-
   <div class="panel-actions">
-    <a id="panel-wa-btn" href="#" target="_blank" class="btn btn-wa btn-sm">💬 WhatsApp</a>
-    <select class="status-select" id="panel-status-sel" onchange="updateStatus()">
+    <a id="panel-wa" href="#" target="_blank" class="btn btn-wa btn-sm"><i data-lucide="message-circle"></i> WhatsApp</a>
+    <select class="status-select" id="panel-status" onchange="updateStatus()">
       <option value="novo">⚪ Novo</option>
       <option value="quente">🟢 Quente</option>
       <option value="morno">🟡 Morno</option>
       <option value="frio">🔴 Frio</option>
     </select>
-    <select class="status-select" id="panel-seg-sel" onchange="updateSegment()">
+    <select class="seg-select" id="panel-seg" onchange="updateSegment()">
       <option value="desconhecido">❓ Desconhecido</option>
       <option value="mcmv">🏠 MCMV</option>
       <option value="leilao">🔨 Leilão</option>
       <option value="regularizacao">📋 Regularização</option>
     </select>
   </div>
-
   <div class="panel-tabs">
     <button class="tab-btn active" onclick="switchTab('resumo')">Resumo</button>
     <button class="tab-btn" onclick="switchTab('conversa')">Conversa</button>
     <button class="tab-btn" onclick="switchTab('agendamento')">Agendamento</button>
     <button class="tab-btn" onclick="switchTab('notas')">Notas</button>
   </div>
-
   <div class="panel-body">
-
-    <!-- RESUMO -->
     <div class="tab-content active" id="tab-resumo">
       <div class="info-grid" id="info-grid"></div>
-      <div class="form-group">
-        <label>Nome do cliente</label>
-        <input type="text" class="form-input" id="edit-name" placeholder="Nome completo">
-      </div>
-      <div class="form-group">
-        <label>Corretor responsável</label>
-        <input type="text" class="form-input" id="assigned-to" placeholder="Nome do corretor ou equipe">
-      </div>
-      <button class="btn btn-primary" onclick="saveResumo()" style="width:100%">💾 Salvar alterações</button>
+      <div class="form-group"><label>Nome do cliente</label><input type="text" class="form-input" id="edit-name" placeholder="Nome completo"></div>
+      <div class="form-group"><label>Corretor responsável</label><input type="text" class="form-input" id="assigned-to" placeholder="Nome do corretor"></div>
+      <button class="btn btn-primary" onclick="saveResumo()" style="width:100%"><i data-lucide="save"></i> Salvar alterações</button>
     </div>
-
-    <!-- CONVERSA -->
     <div class="tab-content" id="tab-conversa">
       <div class="chat-messages" id="chat-messages"></div>
       <div class="send-box">
-        <textarea class="send-input" id="send-input" placeholder="Digite uma mensagem para enviar via WhatsApp…" rows="2" onkeydown="handleSendKey(event)"></textarea>
-        <button class="btn btn-primary btn-sm" onclick="sendMessage()" style="align-self:flex-end">Enviar</button>
+        <textarea class="send-input" id="send-input" rows="2" placeholder="Enviar mensagem via WhatsApp…" onkeydown="handleSendKey(event)"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="sendMessage()" style="align-self:flex-end"><i data-lucide="send"></i></button>
       </div>
     </div>
-
-    <!-- AGENDAMENTO -->
     <div class="tab-content" id="tab-agendamento">
-      <div class="form-group">
-        <label>Data e hora do atendimento</label>
-        <input type="datetime-local" class="form-input" id="scheduled-at">
-      </div>
+      <div class="form-group"><label>Data e hora do atendimento</label><input type="datetime-local" class="form-input" id="scheduled-at"></div>
       <div class="form-group">
         <label>Tipo de atendimento</label>
         <select class="form-select" id="meeting-type">
@@ -352,115 +645,135 @@ tr{cursor:pointer}
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button class="btn btn-primary" onclick="saveAgendamento()" style="flex:1">💾 Salvar agendamento</button>
-        <button class="btn btn-danger btn-sm" onclick="removeAgendamento()" title="Remover">🗑</button>
+        <button class="btn btn-primary" onclick="saveAgendamento()" style="flex:1"><i data-lucide="calendar-check"></i> Salvar</button>
+        <button class="btn btn-danger btn-sm" onclick="removeAgendamento()" title="Remover"><i data-lucide="trash-2"></i></button>
       </div>
       <div id="agenda-status"></div>
     </div>
-
-    <!-- NOTAS -->
     <div class="tab-content" id="tab-notas">
-      <div class="form-group">
-        <label>Notas internas (visível apenas para a equipe)</label>
-        <textarea class="form-textarea" id="notes-input" placeholder="Observações, detalhes da conversa, pendências…" style="min-height:180px"></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="saveNotes()" style="width:100%">💾 Salvar notas</button>
+      <div class="form-group"><label>Notas internas</label><textarea class="form-textarea" id="notes-input" placeholder="Observações, pendências, detalhes da conversa…" style="min-height:180px"></textarea></div>
+      <button class="btn btn-primary" onclick="saveNotes()" style="width:100%"><i data-lucide="save"></i> Salvar notas</button>
     </div>
-
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><i data-lucide="check-circle"></i><span id="toast-msg"></span></div>
 
 <script>
-let curPage = 1, curLead = null, searchT = null;
+let curPage=1, curLead=null, searchT=null, TOKEN=null;
+
+// ── AUTH ───────────────────────────────────────────────────
+async function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  try {
+    const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pw}) });
+    if (!r.ok) { err.textContent = 'Senha incorreta. Tente novamente.'; return; }
+    const { token } = await r.json();
+    TOKEN = token;
+    localStorage.setItem('crm_token', token);
+    showApp();
+  } catch(e) { err.textContent = 'Erro de conexão.'; }
+}
+
+function doLogout() {
+  TOKEN = null; localStorage.removeItem('crm_token');
+  document.getElementById('main-app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pw').value = '';
+  lucide.createIcons();
+}
+
+function togglePw() {
+  const inp = document.getElementById('login-pw');
+  const eye = document.getElementById('pw-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.setAttribute('data-lucide','eye-off'); }
+  else { inp.type = 'password'; eye.setAttribute('data-lucide','eye'); }
+  lucide.createIcons();
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').classList.add('visible');
+  lucide.createIcons();
+  loadDashboard();
+}
 
 // ── NAVIGATE ───────────────────────────────────────────────
 function navigate(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-  document.getElementById('page-' + p).classList.add('active');
-  const idx = ['dashboard','leads','agendamentos'].indexOf(p);
+  document.getElementById('page-'+p).classList.add('active');
+  const idx = ['dashboard','leads','agendamentos','config'].indexOf(p);
   document.querySelectorAll('.nav-item')[idx].classList.add('active');
-  document.getElementById('page-title').textContent = {dashboard:'Dashboard',leads:'Leads',agendamentos:'Agendamentos'}[p];
-  if (p === 'dashboard') loadDashboard();
-  if (p === 'leads') loadLeads();
-  if (p === 'agendamentos') loadAgendamentos();
+  document.getElementById('page-title').textContent = {dashboard:'Dashboard',leads:'Leads',agendamentos:'Agendamentos',config:'Configurar Agente'}[p];
+  if (p==='dashboard') loadDashboard();
+  if (p==='leads') loadLeads();
+  if (p==='agendamentos') loadAgendamentos();
+  if (p==='config') loadConfig();
+  lucide.createIcons();
 }
-function refresh() { navigate(document.querySelector('.page.active').id.replace('page-','')) }
+function refresh() { navigate(document.querySelector('.page.active').id.replace('page-','')); }
 
 // ── DASHBOARD ──────────────────────────────────────────────
 async function loadDashboard() {
-  try {
-    const d = await api('/api/dashboard');
-    document.getElementById('s-total').textContent = d.total;
-    document.getElementById('s-quente').textContent = d.byStatus.quente || 0;
-    document.getElementById('s-morno').textContent = d.byStatus.morno || 0;
-    document.getElementById('s-frio').textContent = d.byStatus.frio || 0;
-    document.getElementById('s-hoje').textContent = d.today;
-    document.getElementById('s-mcmv').textContent = d.bySegment.mcmv || 0;
-    document.getElementById('s-leilao').textContent = d.bySegment.leilao || 0;
-    document.getElementById('s-reg').textContent = d.bySegment.regularizacao || 0;
+  const d = await api('/api/dashboard');
+  if (!d) return;
+  document.getElementById('s-total').textContent = d.total;
+  document.getElementById('s-quente').textContent = d.byStatus.quente||0;
+  document.getElementById('s-morno').textContent = d.byStatus.morno||0;
+  document.getElementById('s-frio').textContent = d.byStatus.frio||0;
+  document.getElementById('s-hoje').textContent = d.today;
+  document.getElementById('s-mcmv').textContent = d.bySegment.mcmv||0;
+  document.getElementById('s-leilao').textContent = d.bySegment.leilao||0;
+  document.getElementById('s-reg').textContent = d.bySegment.regularizacao||0;
 
-    const tbody = document.getElementById('recent-tbody');
-    tbody.innerHTML = d.recent.length ? d.recent.map(l => `
-      <tr onclick="openLead('${l.phone}')">
-        <td><strong>${esc(l.name || '—')}</strong></td>
-        <td style="color:var(--muted)">${fmtPhone(l.phone)}</td>
-        <td>${segBadge(l.segment)}</td>
-        <td>${stBadge(l.status)}</td>
-        <td style="color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.last_message || '—')}</td>
-        <td style="color:var(--muted)">${fmtDate(l.created_at)}</td>
-      </tr>`).join('') :
-      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum lead ainda</td></tr>';
+  const tb = document.getElementById('recent-tbody');
+  tb.innerHTML = d.recent.length ? d.recent.map(l=>`
+    <tr onclick="openLead('${l.phone}')">
+      <td><strong>${esc(l.name||'—')}</strong></td>
+      <td style="color:var(--muted)">${fmtPhone(l.phone)}</td>
+      <td>${segBadge(l.segment)}</td><td>${stBadge(l.status)}</td>
+      <td style="color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.last_message||'—')}</td>
+      <td style="color:var(--muted)">${fmtDate(l.created_at)}</td>
+    </tr>`).join('') :
+    '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum lead ainda</td></tr>';
 
-    const upList = document.getElementById('upcoming-list');
-    upList.innerHTML = d.upcoming.length ? d.upcoming.map(l => upcomingCard(l)).join('') :
-      '<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px">Nenhum agendamento próximo</div>';
+  const ul = document.getElementById('upcoming-list');
+  ul.innerHTML = d.upcoming.length ? d.upcoming.map(l=>{
+    const dt=new Date(l.scheduled_at);
+    return `<div class="agenda-card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="openLead('${l.phone}')">
+      <div class="agenda-date-box" style="min-width:48px;padding:7px 10px">
+        <div class="day">${dt.getDate()}</div>
+        <div class="month">${dt.toLocaleString('pt-BR',{month:'short'})}</div>
+        <div class="time">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div><div style="font-weight:600;font-size:12px">${esc(l.name||'Sem nome')}</div>
+      <div style="font-size:10px;color:var(--muted)">${fmtPhone(l.phone)}</div>
+      <div style="margin-top:4px">${segBadge(l.segment)}</div></div>
+    </div>`;
+  }).join('') : '<div style="text-align:center;padding:28px;color:var(--muted);font-size:12px">Nenhum agendamento próximo</div>';
 
-    setUpdate();
-  } catch(e) { console.error(e) }
-}
-
-function upcomingCard(l) {
-  const d = new Date(l.scheduled_at);
-  return `<div class="agenda-card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="openLead('${l.phone}')">
-    <div class="agenda-date-box" style="min-width:48px;padding:7px 10px">
-      <div class="day">${d.getDate()}</div>
-      <div class="month">${d.toLocaleString('pt-BR',{month:'short'})}</div>
-      <div class="time">${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
-    </div>
-    <div>
-      <div style="font-weight:600;font-size:13px">${esc(l.name||'Sem nome')}</div>
-      <div style="font-size:11px;color:var(--muted)">${fmtPhone(l.phone)}</div>
-      <div style="margin-top:4px">${segBadge(l.segment)}</div>
-    </div>
-  </div>`;
+  setUpdate(); lucide.createIcons();
 }
 
 // ── LEADS ──────────────────────────────────────────────────
-async function loadLeads(p = 1) {
-  curPage = p;
-  const search = document.getElementById('search-input').value;
-  const status = document.getElementById('filter-status').value;
-  const segment = document.getElementById('filter-segment').value;
-  const params = new URLSearchParams({ page: p, limit: 20 });
-  if (search) params.set('search', search);
-  if (status) params.set('status', status);
-  if (segment) params.set('segment', segment);
-  try {
-    const data = await api('/api/leads?' + params);
-    document.getElementById('leads-count').textContent = `${data.total} lead${data.total !== 1 ? 's' : ''} encontrado${data.total !== 1 ? 's' : ''}`;
-    renderLeads(data.leads);
-    renderPages(data.pages, p);
-    setUpdate();
-  } catch(e) { console.error(e) }
-}
-
-function renderLeads(leads) {
-  const c = document.getElementById('leads-list');
-  if (!leads.length) { c.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>Nenhum lead encontrado</p></div>'; return; }
-  c.innerHTML = leads.map(l => `
+async function loadLeads(p=1) {
+  curPage=p;
+  const search=document.getElementById('search-input').value;
+  const status=document.getElementById('filter-status').value;
+  const segment=document.getElementById('filter-segment').value;
+  const params=new URLSearchParams({page:p,limit:20});
+  if(search) params.set('search',search);
+  if(status) params.set('status',status);
+  if(segment) params.set('segment',segment);
+  const data=await api('/api/leads?'+params);
+  if(!data) return;
+  document.getElementById('leads-count').textContent=`${data.total} lead${data.total!==1?'s':''} encontrado${data.total!==1?'s':''}`;
+  const c=document.getElementById('leads-list');
+  if(!data.leads.length) { c.innerHTML='<div class="empty-state"><i data-lucide="users"></i><p style="margin-top:10px">Nenhum lead encontrado</p></div>'; lucide.createIcons(); return; }
+  c.innerHTML=data.leads.map(l=>`
     <div class="lead-card" onclick="openLead('${l.phone}')">
       <div class="lead-avatar" style="background:${aColor(l.phone)}">${initials(l.name||l.phone)}</div>
       <div class="lead-info">
@@ -470,299 +783,251 @@ function renderLeads(leads) {
       </div>
       <div class="lead-meta">
         <div class="lead-time">${ago(l.last_message_at||l.updated_at)}</div>
-        ${stBadge(l.status)}
-        ${segBadge(l.segment)}
-        ${l.scheduled_at ? '<span style="font-size:10px;color:var(--accent)">📅 Agendado</span>' : ''}
+        ${stBadge(l.status)}${segBadge(l.segment)}
+        ${l.scheduled_at?'<span style="font-size:10px;color:var(--accent)">📅</span>':''}
       </div>
     </div>`).join('');
+  // pagination
+  const pc=document.getElementById('pagination');
+  if(data.pages<=1){pc.innerHTML='';} else {
+    let h=`<button class="page-btn" onclick="loadLeads(${p-1})" ${p<=1?'disabled':''}>←</button>`;
+    for(let i=Math.max(1,p-2);i<=Math.min(data.pages,p+2);i++) h+=`<button class="page-btn ${i===p?'active':''}" onclick="loadLeads(${i})">${i}</button>`;
+    h+=`<button class="page-btn" onclick="loadLeads(${p+1})" ${p>=data.pages?'disabled':''}>→</button>`;
+    pc.innerHTML=h;
+  }
+  setUpdate(); lucide.createIcons();
 }
-
-function renderPages(pages, cur) {
-  const c = document.getElementById('pagination');
-  if (pages <= 1) { c.innerHTML = ''; return; }
-  let h = `<button class="page-btn" onclick="loadLeads(${cur-1})" ${cur<=1?'disabled':''}>← Ant</button>`;
-  for (let i = Math.max(1,cur-2); i <= Math.min(pages,cur+2); i++)
-    h += `<button class="page-btn ${i===cur?'active':''}" onclick="loadLeads(${i})">${i}</button>`;
-  h += `<button class="page-btn" onclick="loadLeads(${cur+1})" ${cur>=pages?'disabled':''}>Prox →</button>`;
-  c.innerHTML = h;
-}
-
-function debounceSearch() {
-  clearTimeout(searchT);
-  searchT = setTimeout(() => loadLeads(1), 380);
-}
+function debounceSearch(){ clearTimeout(searchT); searchT=setTimeout(()=>loadLeads(1),380); }
 
 // ── AGENDAMENTOS ───────────────────────────────────────────
 async function loadAgendamentos() {
-  try {
-    const data = await api('/api/agendamentos');
-    const c = document.getElementById('agenda-list');
-    if (!data.length) { c.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhum agendamento cadastrado</p></div>'; return; }
+  const data=await api('/api/agendamentos'); if(!data) return;
+  const c=document.getElementById('agenda-list');
+  if(!data.length){ c.innerHTML='<div class="empty-state"><i data-lucide="calendar"></i><p style="margin-top:10px">Nenhum agendamento cadastrado</p></div>'; lucide.createIcons(); return; }
+  const groups={};
+  data.forEach(l=>{
+    const k=new Date(l.scheduled_at).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+    if(!groups[k]) groups[k]=[];
+    groups[k].push(l);
+  });
+  c.innerHTML=Object.entries(groups).map(([date,leads])=>`
+    <div style="margin-bottom:22px">
+      <div class="section-title" style="margin-bottom:10px;text-transform:capitalize">${date}</div>
+      ${leads.map(l=>{
+        const dt=new Date(l.scheduled_at); const past=dt<new Date();
+        return `<div class="agenda-card" style="${past?'opacity:.5':''}">
+          <div class="agenda-date-box">
+            <div class="day">${dt.getDate()}</div>
+            <div class="month">${dt.toLocaleString('pt-BR',{month:'short'})}</div>
+            <div class="time">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px;margin-bottom:3px">${esc(l.name||'Sem nome')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${fmtPhone(l.phone)}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              ${segBadge(l.segment)} ${stBadge(l.status)}
+              <span style="font-size:10px;color:${past?'var(--frio)':'var(--quente)'}">${past?'• Passado':'• Próximo'}</span>
+            </div>
+            ${l.assigned_to?`<div style="font-size:11px;color:var(--muted);margin-top:5px">👤 ${esc(l.assigned_to)}</div>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <a href="https://wa.me/${l.phone}" target="_blank" class="btn btn-wa btn-sm"><i data-lucide="message-circle"></i></a>
+            <button class="btn btn-ghost btn-sm" onclick="openLead('${l.phone}')">Ver</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+  lucide.createIcons();
+}
 
-    // group by date
-    const groups = {};
-    data.forEach(l => {
-      const key = new Date(l.scheduled_at).toLocaleDateString('pt-BR', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(l);
-    });
+// ── CONFIG ─────────────────────────────────────────────────
+let configData = {};
+async function loadConfig() {
+  const data = await api('/api/config'); if(!data) return;
+  configData = data;
+  const segments = ['desconhecido','mcmv','leilao','regularizacao'];
+  segments.forEach(s => {
+    const ta = document.getElementById('prompt-'+s);
+    const upd = document.getElementById('updated-'+s);
+    if (data['prompt_'+s]) {
+      ta.value = data['prompt_'+s].value;
+      upd.textContent = '✓ Salvo em '+fmtDT(data['prompt_'+s].updated_at);
+    } else {
+      ta.value = '';
+      upd.textContent = 'Usando padrão do sistema';
+    }
+  });
+  if (data['agent_name']) document.getElementById('cfg-agent-name').value = data['agent_name'].value;
+  lucide.createIcons();
+}
 
-    c.innerHTML = Object.entries(groups).map(([date, leads]) => `
-      <div style="margin-bottom:20px">
-        <div class="section-title" style="margin-bottom:10px;text-transform:capitalize">${date}</div>
-        ${leads.map(l => {
-          const dt = new Date(l.scheduled_at);
-          const past = dt < new Date();
-          return `<div class="agenda-card" style="${past?'opacity:.5':''}">
-            <div class="agenda-date-box">
-              <div class="day">${dt.getDate()}</div>
-              <div class="month">${dt.toLocaleString('pt-BR',{month:'short'})}</div>
-              <div class="time">${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
-            </div>
-            <div style="flex:1">
-              <div style="font-weight:600;font-size:13px;margin-bottom:3px">${esc(l.name||'Sem nome')}</div>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${fmtPhone(l.phone)}</div>
-              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                ${segBadge(l.segment)} ${stBadge(l.status)}
-                ${past?'<span style="font-size:10px;color:var(--frio)">• Passado</span>':'<span style="font-size:10px;color:var(--quente)">• Próximo</span>'}
-              </div>
-              ${l.assigned_to?`<div style="font-size:11px;color:var(--muted);margin-top:5px">👤 ${esc(l.assigned_to)}</div>`:''}
-              ${l.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px">📝 ${esc(l.notes.slice(0,70))}${l.notes.length>70?'…':''}</div>`:''}
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <a href="https://wa.me/${l.phone}" target="_blank" class="btn btn-wa btn-sm">💬</a>
-              <button class="btn btn-ghost btn-sm" onclick="openLead('${l.phone}')">Ver</button>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`).join('');
-  } catch(e) { console.error(e) }
+function switchConfigTab(seg) {
+  document.querySelectorAll('.config-tab-content').forEach(t => t.style.display='none');
+  document.querySelectorAll('.config-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('config-tab-'+seg).style.display='block';
+  const idx = ['desconhecido','mcmv','leilao','regularizacao'].indexOf(seg);
+  document.querySelectorAll('.config-tab')[idx].classList.add('active');
+}
+
+async function savePrompt(seg) {
+  const value = document.getElementById('prompt-'+seg).value.trim();
+  await api('/api/config','PUT',{key:'prompt_'+seg, value: value||null});
+  document.getElementById('updated-'+seg).textContent = value ? '✓ Salvo em '+fmtDT(new Date().toISOString()) : 'Usando padrão do sistema';
+  toast('Prompt salvo! Karina já usa as novas instruções.','success');
+}
+
+async function resetPrompt(seg) {
+  await api('/api/config','PUT',{key:'prompt_'+seg, value:''});
+  document.getElementById('prompt-'+seg).value = '';
+  document.getElementById('updated-'+seg).textContent = 'Usando padrão do sistema';
+  toast('Prompt restaurado para o padrão.','info');
 }
 
 // ── LEAD PANEL ─────────────────────────────────────────────
 async function openLead(phone) {
-  try {
-    const { lead: l, messages } = await api('/api/leads/' + phone);
-    curLead = l;
+  const data = await api('/api/leads/'+phone); if(!data) return;
+  const l = data.lead; curLead = l;
+  document.getElementById('panel-avatar').textContent = initials(l.name||l.phone);
+  document.getElementById('panel-avatar').style.background = aColor(phone);
+  document.getElementById('panel-name').textContent = l.name||'Sem nome';
+  document.getElementById('panel-phone').textContent = fmtPhone(phone);
+  document.getElementById('panel-wa').href = 'https://wa.me/'+phone;
+  document.getElementById('panel-status').value = l.status||'novo';
+  document.getElementById('panel-seg').value = l.segment||'desconhecido';
+  document.getElementById('edit-name').value = l.name||'';
+  document.getElementById('assigned-to').value = l.assigned_to||'';
 
-    document.getElementById('panel-avatar').textContent = initials(l.name||l.phone);
-    document.getElementById('panel-avatar').style.background = aColor(phone);
-    document.getElementById('panel-name').textContent = l.name || 'Sem nome';
-    document.getElementById('panel-phone').textContent = fmtPhone(phone);
-    document.getElementById('panel-wa-btn').href = 'https://wa.me/' + phone;
-    document.getElementById('panel-status-sel').value = l.status || 'novo';
-    document.getElementById('panel-seg-sel').value = l.segment || 'desconhecido';
-    document.getElementById('edit-name').value = l.name || '';
-    document.getElementById('assigned-to').value = l.assigned_to || '';
+  document.getElementById('info-grid').innerHTML = [
+    {label:'Renda', val:l.renda||'—'},
+    {label:'Nome limpo', val:fmtBool(l.nome_limpo)},
+    {label:'FGTS', val:fmtBool(l.fgts)},
+    {label:'Primeiro imóvel', val:fmtBool(l.primeiro_imovel)},
+    {label:'Segmento', val:segLabel(l.segment)},
+    {label:'Status', val:stLabel(l.status)},
+    {label:'Cadastro', val:fmtDate(l.created_at)},
+    {label:'Atualizado', val:fmtDate(l.updated_at)},
+  ].map(i=>`<div class="info-item"><label>${i.label}</label><div class="val">${i.val}</div></div>`).join('');
 
-    // info grid
-    const items = [
-      { label: 'Renda', val: l.renda || '—' },
-      { label: 'Nome limpo', val: fmtBool(l.nome_limpo) },
-      { label: 'FGTS', val: fmtBool(l.fgts) },
-      { label: 'Primeiro imóvel', val: fmtBool(l.primeiro_imovel) },
-      { label: 'Segmento', val: segLabel(l.segment) },
-      { label: 'Status', val: stLabel(l.status) },
-      { label: 'Cadastro', val: fmtDate(l.created_at) },
-      { label: 'Atualizado', val: fmtDate(l.updated_at) },
-    ];
-    document.getElementById('info-grid').innerHTML = items.map(i =>
-      `<div class="info-item"><label>${i.label}</label><div class="val">${i.val}</div></div>`).join('');
+  const chat = document.getElementById('chat-messages');
+  chat.innerHTML = data.messages.length ? data.messages.map(m=>`
+    <div>
+      <div class="msg msg-${m.role}">${m.media_type==='audio'?'<span style="font-style:italic;opacity:.7">🎵 Mensagem de áudio</span>':esc(m.content)}</div>
+      <div class="msg-time" style="text-align:${m.role==='assistant'?'right':'left'}">${fmtDT(m.created_at)}</div>
+    </div>`).join('') :
+    '<div style="text-align:center;color:var(--muted);padding:24px;font-size:12px">Sem mensagens ainda</div>';
+  setTimeout(()=>{chat.scrollTop=chat.scrollHeight;},80);
 
-    // chat
-    const chat = document.getElementById('chat-messages');
-    chat.innerHTML = messages.length ? messages.map(m => `
-      <div>
-        <div class="msg msg-${m.role}">
-          ${m.media_type==='audio'?'<span style="font-style:italic;color:var(--muted)">🎵 Mensagem de áudio</span>':esc(m.content)}
-        </div>
-        <div class="msg-time" style="text-align:${m.role==='assistant'?'right':'left'}">${fmtDT(m.created_at)}</div>
-      </div>`).join('') :
-      '<div style="text-align:center;color:var(--muted);padding:24px;font-size:12px">Sem mensagens ainda</div>';
-    setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 80);
+  const ag = document.getElementById('scheduled-at');
+  const agS = document.getElementById('agenda-status');
+  if (l.scheduled_at) {
+    ag.value = new Date(l.scheduled_at).toISOString().slice(0,16);
+    agS.innerHTML = `<div class="info-box">✅ Agendado para <strong>${new Date(l.scheduled_at).toLocaleString('pt-BR')}</strong></div>`;
+  } else { ag.value=''; agS.innerHTML=''; }
 
-    // agendamento
-    const ag = document.getElementById('scheduled-at');
-    const agStatus = document.getElementById('agenda-status');
-    if (l.scheduled_at) {
-      ag.value = new Date(l.scheduled_at).toISOString().slice(0,16);
-      agStatus.innerHTML = `<div class="info-box">✅ Agendado para <strong>${new Date(l.scheduled_at).toLocaleString('pt-BR')}</strong></div>`;
-    } else {
-      ag.value = '';
-      agStatus.innerHTML = '';
-    }
-
-    // notas
-    document.getElementById('notes-input').value = l.notes || '';
-
-    switchTab('resumo');
-    document.getElementById('lead-panel').classList.add('open');
-    document.getElementById('overlay').classList.add('show');
-  } catch(e) { toast('Erro ao carregar lead', 'error'); }
+  document.getElementById('notes-input').value = l.notes||'';
+  switchTab('resumo');
+  document.getElementById('lead-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  lucide.createIcons();
 }
 
 function closePanel() {
   document.getElementById('lead-panel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
-  curLead = null;
+  curLead=null;
 }
-
 function switchTab(name) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  const idx = ['resumo','conversa','agendamento','notas'].indexOf(name);
-  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn')[['resumo','conversa','agendamento','notas'].indexOf(name)].classList.add('active');
 }
 
-// ── ACTIONS ────────────────────────────────────────────────
-async function updateStatus() {
-  if (!curLead) return;
-  await api('/api/leads/' + curLead.phone, 'PUT', { status: document.getElementById('panel-status-sel').value });
-  toast('Status atualizado! ✓', 'success');
-}
-
-async function updateSegment() {
-  if (!curLead) return;
-  await api('/api/leads/' + curLead.phone, 'PUT', { segment: document.getElementById('panel-seg-sel').value });
-  toast('Segmento atualizado! ✓', 'success');
-}
-
+async function updateStatus() { if(!curLead) return; await api('/api/leads/'+curLead.phone,'PUT',{status:document.getElementById('panel-status').value}); toast('Status atualizado!','success'); }
+async function updateSegment() { if(!curLead) return; await api('/api/leads/'+curLead.phone,'PUT',{segment:document.getElementById('panel-seg').value}); toast('Segmento atualizado!','success'); }
 async function saveResumo() {
-  if (!curLead) return;
-  const name = document.getElementById('edit-name').value;
-  const assigned_to = document.getElementById('assigned-to').value;
-  await api('/api/leads/' + curLead.phone, 'PUT', { name, assigned_to });
-  document.getElementById('panel-name').textContent = name || 'Sem nome';
-  curLead.name = name;
-  toast('Informações salvas! ✓', 'success');
+  if(!curLead) return;
+  const name=document.getElementById('edit-name').value;
+  const assigned_to=document.getElementById('assigned-to').value;
+  await api('/api/leads/'+curLead.phone,'PUT',{name,assigned_to});
+  document.getElementById('panel-name').textContent=name||'Sem nome';
+  curLead.name=name; toast('Salvo!','success');
 }
-
-async function saveNotes() {
-  if (!curLead) return;
-  await api('/api/leads/' + curLead.phone, 'PUT', { notes: document.getElementById('notes-input').value });
-  toast('Notas salvas! ✓', 'success');
-}
-
+async function saveNotes() { if(!curLead) return; await api('/api/leads/'+curLead.phone,'PUT',{notes:document.getElementById('notes-input').value}); toast('Notas salvas!','success'); }
 async function saveAgendamento() {
-  if (!curLead) return;
-  const dt = document.getElementById('scheduled-at').value;
-  if (!dt) { toast('Selecione data e hora', 'error'); return; }
-  await api('/api/leads/' + curLead.phone, 'PUT', { scheduled_at: dt });
-  const d = new Date(dt);
-  document.getElementById('agenda-status').innerHTML =
-    `<div class="info-box">✅ Agendado para <strong>${d.toLocaleString('pt-BR')}</strong></div>`;
-  toast('Agendamento salvo! ✓', 'success');
+  if(!curLead) return;
+  const dt=document.getElementById('scheduled-at').value;
+  if(!dt){toast('Selecione data e hora','error');return;}
+  await api('/api/leads/'+curLead.phone,'PUT',{scheduled_at:dt});
+  document.getElementById('agenda-status').innerHTML=`<div class="info-box">✅ Agendado para <strong>${new Date(dt).toLocaleString('pt-BR')}</strong></div>`;
+  toast('Agendamento salvo!','success');
 }
-
 async function removeAgendamento() {
-  if (!curLead) return;
-  await api('/api/leads/' + curLead.phone, 'PUT', { scheduled_at: null });
-  document.getElementById('scheduled-at').value = '';
-  document.getElementById('agenda-status').innerHTML = '';
-  toast('Agendamento removido', 'success');
+  if(!curLead) return;
+  await api('/api/leads/'+curLead.phone,'PUT',{scheduled_at:null});
+  document.getElementById('scheduled-at').value=''; document.getElementById('agenda-status').innerHTML='';
+  toast('Agendamento removido','info');
 }
-
 async function sendMessage() {
-  if (!curLead) return;
-  const input = document.getElementById('send-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  try {
-    await api('/api/leads/' + curLead.phone + '/send', 'POST', { message: msg });
-    const chat = document.getElementById('chat-messages');
-    chat.insertAdjacentHTML('beforeend', `
-      <div>
-        <div class="msg msg-assistant">${esc(msg)}</div>
-        <div class="msg-time" style="text-align:right">${fmtDT(new Date().toISOString())}</div>
-      </div>`);
-    chat.scrollTop = chat.scrollHeight;
-    toast('Mensagem enviada! ✓', 'success');
-  } catch(e) { toast('Erro ao enviar mensagem', 'error'); }
+  if(!curLead) return;
+  const input=document.getElementById('send-input'); const msg=input.value.trim(); if(!msg) return; input.value='';
+  const ok = await api('/api/leads/'+curLead.phone+'/send','POST',{message:msg});
+  if(!ok) return;
+  const chat=document.getElementById('chat-messages');
+  chat.insertAdjacentHTML('beforeend',`<div><div class="msg msg-assistant">${esc(msg)}</div><div class="msg-time" style="text-align:right">${fmtDT(new Date().toISOString())}</div></div>`);
+  chat.scrollTop=chat.scrollHeight; toast('Enviado!','success');
 }
-
-function handleSendKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
+function handleSendKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
 
 // ── API ────────────────────────────────────────────────────
-async function api(url, method = 'GET', body = null) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if (!res.ok) throw new Error(res.status);
-  return res.json();
+async function api(url, method='GET', body=null) {
+  try {
+    const opts={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}};
+    if(body) opts.body=JSON.stringify(body);
+    const r=await fetch(url,opts);
+    if(r.status===401){doLogout();return null;}
+    if(!r.ok){toast('Erro na requisição','error');return null;}
+    return r.json();
+  } catch(e){toast('Erro de conexão','error');return null;}
 }
 
 // ── HELPERS ────────────────────────────────────────────────
-const segColors = { mcmv:'mcmv', leilao:'leilao', regularizacao:'regularizacao', desconhecido:'desconhecido' };
-const segLabels = { mcmv:'🏠 MCMV', leilao:'🔨 Leilão', regularizacao:'📋 Reg.', desconhecido:'❓ —' };
-const stLabels  = { quente:'🟢 Quente', morno:'🟡 Morno', frio:'🔴 Frio', novo:'⚪ Novo' };
-
-function segBadge(s) { return `<span class="badge badge-${s||'desconhecido'}">${segLabels[s]||s||'—'}</span>`; }
-function stBadge(s)  { return `<span class="badge badge-${s||'novo'}">${stLabels[s]||s||'Novo'}</span>`; }
-function segLabel(s) { return segLabels[s] || s || '—'; }
-function stLabel(s)  { return stLabels[s]  || s || '—'; }
-
-function initials(str) {
-  if (!str) return '?';
-  const p = str.trim().split(' ');
-  return p.length >= 2 ? (p[0][0]+p[1][0]).toUpperCase() : str.slice(0,2).toUpperCase();
+const segL={mcmv:'🏠 MCMV',leilao:'🔨 Leilão',regularizacao:'📋 Reg.',desconhecido:'❓ —'};
+const stL={quente:'🟢 Quente',morno:'🟡 Morno',frio:'🔴 Frio',novo:'⚪ Novo'};
+function segBadge(s){return `<span class="badge badge-${s||'desconhecido'}">${segL[s]||s||'—'}</span>`;}
+function stBadge(s){return `<span class="badge badge-${s||'novo'}">${stL[s]||s||'Novo'}</span>`;}
+function segLabel(s){return segL[s]||s||'—';}
+function stLabel(s){return stL[s]||s||'—';}
+function initials(str){if(!str)return '?';const p=str.trim().split(' ');return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():str.slice(0,2).toUpperCase();}
+const cols=['#1e3a8a','#1e3a5f','#3b0764','#7c2d12','#14532d','#1e40af','#713f12','#134e4a'];
+function aColor(phone){const h=phone.split('').reduce((a,c)=>a+c.charCodeAt(0),0);return cols[h%cols.length];}
+function fmtPhone(p){if(!p)return '—';const n=p.replace(/\D/g,'');if(n.length===13)return `+${n.slice(0,2)} (${n.slice(2,4)}) ${n.slice(4,5)} ${n.slice(5,9)}-${n.slice(9)}`;if(n.length===11)return `(${n.slice(0,2)}) ${n.slice(2,3)} ${n.slice(3,7)}-${n.slice(7)}`;return p;}
+function fmtDate(dt){return dt?new Date(dt).toLocaleDateString('pt-BR'):'—';}
+function fmtDT(dt){if(!dt)return '—';return new Date(dt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+function fmtBool(v){return v==='sim'?'✅ Sim':v==='nao'?'❌ Não':'—';}
+function ago(dt){if(!dt)return '—';const m=Math.floor((Date.now()-new Date(dt))/60000);if(m<1)return 'agora';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';return Math.floor(h/24)+'d';}
+function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function toast(msg,type='success'){
+  const icons={success:'check-circle',error:'x-circle',info:'info'};
+  document.getElementById('toast').querySelector('i').setAttribute('data-lucide',icons[type]||'info');
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast').className=`toast show ${type}`;
+  lucide.createIcons();
+  setTimeout(()=>document.getElementById('toast').classList.remove('show'),3000);
 }
+function setUpdate(){const s='Atualizado '+new Date().toLocaleTimeString('pt-BR');document.getElementById('last-update').textContent=s;document.getElementById('sidebar-update').textContent=s;}
 
-const cols = ['#1e3a8a','#1e3a5f','#3b0764','#7c2d12','#14532d','#1e40af','#713f12','#134e4a'];
-function aColor(phone) { const h = phone.split('').reduce((a,c)=>a+c.charCodeAt(0),0); return cols[h%cols.length]; }
+setInterval(()=>{
+  if(!TOKEN) return;
+  const p=document.querySelector('.page.active').id.replace('page-','');
+  if(p==='dashboard') loadDashboard();
+  if(p==='leads') loadLeads(curPage);
+},30000);
 
-function fmtPhone(p) {
-  if (!p) return '—';
-  const n = p.replace(/\D/g,'');
-  if (n.length===13) return `+${n.slice(0,2)} (${n.slice(2,4)}) ${n.slice(4,5)} ${n.slice(5,9)}-${n.slice(9)}`;
-  if (n.length===11) return `(${n.slice(0,2)}) ${n.slice(2,3)} ${n.slice(3,7)}-${n.slice(7)}`;
-  return p;
-}
-
-function fmtDate(dt) { return dt ? new Date(dt).toLocaleDateString('pt-BR') : '—'; }
-function fmtDT(dt) {
-  if (!dt) return '—';
-  return new Date(dt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-}
-
-function fmtBool(v) { return v==='sim'?'✅ Sim':v==='nao'?'❌ Não':'—'; }
-
-function ago(dt) {
-  if (!dt) return '—';
-  const m = Math.floor((Date.now()-new Date(dt))/60000);
-  if (m < 1) return 'agora'; if (m < 60) return m+'m';
-  const h = Math.floor(m/60); if (h < 24) return h+'h';
-  return Math.floor(h/24)+'d';
-}
-
-function esc(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-}
-
-function toast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = `toast show ${type}`;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function setUpdate() {
-  const s = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
-  document.getElementById('last-update').textContent = s;
-  document.getElementById('footer-update').textContent = s;
-}
-
-// Auto-refresh 30s
-setInterval(() => {
-  const p = document.querySelector('.page.active').id.replace('page-','');
-  if (p === 'dashboard') loadDashboard();
-  if (p === 'leads') loadLeads(curPage);
-}, 30000);
-
-loadDashboard();
+// ── INIT ───────────────────────────────────────────────────
+const saved = localStorage.getItem('crm_token');
+if (saved) { TOKEN=saved; showApp(); }
+else { document.getElementById('login-screen').style.display='flex'; lucide.createIcons(); }
 </script>
 </body>
 </html>
