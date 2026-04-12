@@ -67,9 +67,14 @@ async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioB
 
     // 7. Enviar resposta
     if (clienteSentAudio) {
-      const base64Audio = await ai.textToSpeech(reply);
-      await evolution.sendAudio(phone, base64Audio);
-      console.log(`[Router] Resposta em áudio enviada para ${phone}`);
+      try {
+        const base64Audio = await ai.textToSpeech(reply);
+        await evolution.sendAudio(phone, base64Audio);
+        console.log(`[Router] Resposta em áudio enviada para ${phone}`);
+      } catch (audioErr) {
+        console.error('[Router] Falha no áudio, enviando texto:', audioErr.message);
+        await evolution.sendText(phone, reply);
+      }
     } else {
       await evolution.sendText(phone, reply);
       console.log(`[Router] Resposta enviada para ${phone}: "${reply.slice(0, 80)}"`);;
