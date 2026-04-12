@@ -44,6 +44,9 @@ async function initDB() {
       value TEXT NOT NULL,
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS notes TEXT;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS assigned_to TEXT;
   `);
   console.log('[DB] Tabelas inicializadas');
 }
@@ -169,6 +172,13 @@ async function getStats() {
   };
 }
 
+async function scheduleAppointment(phone, scheduledAt) {
+  await pool.query(
+    'UPDATE leads SET scheduled_at = $1, updated_at = NOW() WHERE phone = $2',
+    [scheduledAt, phone]
+  );
+}
+
 async function getConfig(key) {
   const { rows } = await pool.query('SELECT value FROM agent_config WHERE key = $1', [key]);
   return rows[0]?.value || null;
@@ -188,6 +198,7 @@ module.exports = {
   upsertLead,
   updateLeadStatus,
   updateLeadSegment,
+  scheduleAppointment,
   saveMessage,
   getLastMessages,
   getAllLeads,

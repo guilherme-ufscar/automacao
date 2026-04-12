@@ -91,6 +91,15 @@ async function handle({ phone, text, isAudio, isImage, messageId, rawAudioMessag
       reply = reply.replace(/\[STATUS:(quente|morno|frio)\]/gi, '').trim();
     }
 
+    // Extrair agendamento se [AGENDAMENTO:YYYY-MM-DDTHH:mm] presente
+    const agendMatch = reply.match(/\[AGENDAMENTO:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})\]/i);
+    if (agendMatch) {
+      const scheduledAt = agendMatch[1];
+      await db.scheduleAppointment(phone, scheduledAt);
+      reply = reply.replace(/\[AGENDAMENTO:[^\]]+\]/gi, '').trim();
+      console.log(`[Router] Agendamento salvo: ${scheduledAt} para ${phone}`);
+    }
+
     // 6. Salvar mensagens
     await db.saveMessage(phone, 'user', userMessage, clienteSentAudio ? 'audio' : 'text');
     await db.saveMessage(phone, 'assistant', reply, clienteSentAudio ? 'audio' : 'text');
