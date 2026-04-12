@@ -1,5 +1,4 @@
 function parse(body) {
-  // WuzAPI envia type "Message" para mensagens recebidas
   if (body.type !== 'Message') return null;
 
   const event = body.event;
@@ -9,15 +8,18 @@ function parse(body) {
   if (!Info || !Message) return null;
 
   // Ignorar mensagens enviadas pelo próprio bot
-  if (Info.FromMe === true) return null;
-
-  const sender = Info.Sender || '';
-  if (!sender) return null;
+  if (Info.IsFromMe === true || Info.FromMe === true) return null;
 
   // Ignorar grupos
-  if (sender.includes('@g.us')) return null;
+  const chat = Info.Chat || Info.Sender || '';
+  if (chat.includes('@g.us')) return null;
 
-  const phone = sender.replace(/@.*/, '');
+  // SenderAlt tem o número real (ex: 5519989261165@s.whatsapp.net)
+  // Sender pode usar @lid (novo formato interno do WhatsApp)
+  const senderRaw = Info.SenderAlt || Info.Sender || '';
+  if (!senderRaw) return null;
+
+  const phone = senderRaw.replace(/@.*/, '');
   const isAudio = Info.Type === 'audio' || !!Message.audioMessage;
   const text = Message.conversation || Message.extendedTextMessage?.text || '';
   const messageId = Info.ID;
