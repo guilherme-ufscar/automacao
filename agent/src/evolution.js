@@ -49,10 +49,13 @@ async function sendText(phone, text) {
 
 async function sendAudio(phone, base64Audio) {
   try {
+    const audioBuffer = Buffer.from(base64Audio, 'base64');
     const res = await axios.post(`${BASE_URL}/chat/send/audio`, {
       Phone: phone,
       Audio: `data:audio/ogg;base64,${base64Audio}`,
       PTT: true,
+      MimeType: 'audio/ogg; codecs=opus',
+      Seconds: Math.ceil(audioBuffer.length / 4000),
     }, { headers: userHeaders });
     console.log('[WuzAPI] sendAudio OK:', JSON.stringify(res.data));
     return res.data;
