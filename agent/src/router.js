@@ -2,14 +2,14 @@ const db = require('./db');
 const ai = require('./ai');
 const evolution = require('./evolution');
 
-async function handle({ phone, text, isAudio, messageId }) {
+async function handle({ phone, text, isAudio, messageId, rawAudioMessage }) {
   try {
     let userMessage = text;
     let clienteSentAudio = false;
 
     // 1. Se for áudio, transcrever
     if (isAudio) {
-      const base64 = await evolution.downloadMedia(messageId);
+      const base64 = await evolution.downloadMedia(messageId, rawAudioMessage);
       const audioBuffer = Buffer.from(base64, 'base64');
       userMessage = await ai.transcribe(audioBuffer);
       clienteSentAudio = true;

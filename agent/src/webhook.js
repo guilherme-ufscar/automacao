@@ -1,33 +1,29 @@
 function parse(body) {
-  // Ignorar eventos que não sejam messages.upsert
-  if (body.event !== 'messages.upsert') return null;
+  // WuzAPI envia type "Message" para mensagens recebidas
+  if (body.type !== 'Message') return null;
 
-  const data = body.data;
-  if (!data) return null;
+  const event = body.event;
+  if (!event) return null;
+
+  const { Info, Message } = event;
+  if (!Info || !Message) return null;
 
   // Ignorar mensagens enviadas pelo próprio bot
-  if (data.key && data.key.fromMe === true) return null;
+  if (Info.FromMe === true) return null;
 
-  // Ignorar se não há mensagem
-  if (!data.message) return null;
-
-  const remoteJid = data.key && data.key.remoteJid;
-  if (!remoteJid) return null;
+  const sender = Info.Sender || '';
+  if (!sender) return null;
 
   // Ignorar grupos
-  if (remoteJid.includes('@g.us')) return null;
+  if (sender.includes('@g.us')) return null;
 
-  // Extrair phone (remover sufixo @s.whatsapp.net)
-  const phone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
+  const phone = sender.replace(/@.*/, '');
+  const isAudio = Info.Type === 'audio' || !!Message.audioMessage;
+  const text = Message.conversation || Message.extendedTextMessage?.text || '';
+  const messageId = Info.ID;
+  const rawAudioMessage = Message.audioMessage || null;
 
-  const messageType = data.messageType || '';
-  const message = data.message || {};
-
-  const isAudio = messageType === 'audioMessage';
-  const text = message.conversation || (message.extendedTextMessage && message.extendedTextMessage.text) || '';
-  const messageId = data.key && data.key.id;
-
-  return { phone, text, isAudio, messageId };
+  return { phone, text, isAudio, messageId, rawAudioMessage };
 }
 
 module.exports = { parse };
