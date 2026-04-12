@@ -61,15 +61,9 @@ async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioB
     await db.saveMessage(phone, 'user', userMessage, clienteSentAudio ? 'audio' : 'text');
     await db.saveMessage(phone, 'assistant', reply, clienteSentAudio ? 'audio' : 'text');
 
-    // 7. Enviar resposta
-    if (clienteSentAudio) {
-      const base64Audio = await ai.textToSpeech(reply);
-      await evolution.sendAudio(phone, base64Audio);
-      console.log(`[Router] Resposta em áudio enviada para ${phone}`);
-    } else {
-      await evolution.sendText(phone, reply);
-      console.log(`[Router] Resposta enviada para ${phone}: "${reply.slice(0, 80)}..."`);
-    }
+    // 7. Enviar resposta sempre em texto (áudio TTS desabilitado até resolução de formato)
+    await evolution.sendText(phone, reply);
+    console.log(`[Router] Resposta enviada para ${phone}: "${reply.slice(0, 80)}"`);
   } catch (err) {
     console.error('[Router] Erro ao processar mensagem:', err.message, err.response?.data);
   }
