@@ -17,8 +17,13 @@ app.get('/webhook', (req, res) => {
 app.post('/webhook', async (req, res) => {
   res.status(200).send('OK'); // responde rápido para não dar timeout
 
+  console.log('[Webhook] RAW:', JSON.stringify(req.body));
+
   const parsed = webhook.parse(req.body);
-  if (!parsed) return;
+  if (!parsed) {
+    console.log('[Webhook] parse retornou null — ignorado');
+    return;
+  }
 
   router.handle(parsed).catch(err => {
     console.error('[Webhook] Erro no handler:', err.message);
