@@ -46,6 +46,8 @@ services:
       WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS: "false"
       DEL_INSTANCE: "false"
       CONFIG_SESSION_PHONE_VERSION: "2.3000.1023204200"
+      CONFIG_SESSION_PHONE_CLIENT: "Chrome"
+      CONFIG_SESSION_PHONE_NAME: "Chrome"
     volumes:
       - evolution_data:/evolution/instances
     networks:
