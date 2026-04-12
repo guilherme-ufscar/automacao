@@ -51,7 +51,7 @@ async function sendAudio(phone, base64Audio) {
   try {
     const res = await axios.post(`${BASE_URL}/chat/send/audio`, {
       Phone: phone,
-      Audio: `data:audio/ogg;base64,${base64Audio}`,
+      Audio: `data:audio/ogg; codecs=opus;base64,${base64Audio}`,
       PTT: true,
     }, { headers: userHeaders });
     console.log('[WuzAPI] sendAudio OK:', JSON.stringify(res.data));

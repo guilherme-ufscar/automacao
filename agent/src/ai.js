@@ -42,17 +42,29 @@ async function transcribe(audioBuffer) {
 function convertToOggOpus(inputBuffer) {
   return new Promise((resolve, reject) => {
     const ff = spawn('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error',
       '-i', 'pipe:0',
+      '-vn',
+      '-ar', '48000',
+      '-ac', '1',
       '-c:a', 'libopus',
-      '-b:a', '64k',
+      '-b:a', '32k',
+      '-application', 'voip',
       '-f', 'ogg',
       'pipe:1',
     ]);
     const chunks = [];
+    const stderrChunks = [];
     ff.stdout.on('data', chunk => chunks.push(chunk));
-    ff.stdout.on('end', () => resolve(Buffer.concat(chunks)));
-    ff.stderr.on('data', () => {});
+    ff.stderr.on('data', chunk => stderrChunks.push(chunk));
     ff.on('error', reject);
+    ff.on('close', (code) => {
+      if (code === 0) {
+        resolve(Buffer.concat(chunks));
+      } else {
+        reject(new Error(`ffmpeg exit ${code}: ${Buffer.concat(stderrChunks).toString()}`));
+      }
+    });
     ff.stdin.write(inputBuffer);
     ff.stdin.end();
   });
@@ -63,11 +75,12 @@ async function textToSpeech(text) {
     model: 'tts-1',
     voice: 'nova',
     input: text,
-    response_format: 'mp3',
+    response_format: 'opus',
   });
 
-  const mp3Buffer = Buffer.from(await response.arrayBuffer());
-  const oggBuffer = await convertToOggOpus(mp3Buffer);
+  const opusBuffer = Buffer.from(await response.arrayBuffer());
+  const oggBuffer = await convertToOggOpus(opusBuffer);
+  console.log(`[TTS] OGG/Opus gerado: ${oggBuffer.length} bytes`);
   return oggBuffer.toString('base64');
 }
 
