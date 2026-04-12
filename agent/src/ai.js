@@ -78,10 +78,9 @@ async function textToSpeech(text) {
     response_format: 'opus',
   });
 
-  const opusBuffer = Buffer.from(await response.arrayBuffer());
-  const oggBuffer = await convertToOggOpus(opusBuffer);
-  console.log(`[TTS] OGG/Opus gerado: ${oggBuffer.length} bytes`);
-  return oggBuffer.toString('base64');
+  const buffer = Buffer.from(await response.arrayBuffer());
+  console.log(`[TTS] OGG/Opus gerado: ${buffer.length} bytes`);
+  return buffer.toString('base64');
 }
 
 module.exports = { chat, transcribe, textToSpeech };
