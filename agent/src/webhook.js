@@ -20,12 +20,14 @@ function parse(body) {
   if (!senderRaw) return null;
 
   const phone = senderRaw.replace(/@.*/, '');
-  const isAudio = Info.Type === 'audio' || !!Message.audioMessage;
+  const isAudio = Info.Type === 'audio' || Info.MediaType === 'ptt' || !!Message.audioMessage;
   const text = Message.conversation || Message.extendedTextMessage?.text || '';
   const messageId = Info.ID;
   const rawAudioMessage = Message.audioMessage || null;
+  // WuzAPI envia base64 do áudio direto no corpo do webhook
+  const audioBase64 = body.base64 || null;
 
-  return { phone, text, isAudio, messageId, rawAudioMessage };
+  return { phone, text, isAudio, messageId, rawAudioMessage, audioBase64 };
 }
 
 module.exports = { parse };

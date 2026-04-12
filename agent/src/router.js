@@ -2,16 +2,19 @@ const db = require('./db');
 const ai = require('./ai');
 const evolution = require('./evolution');
 
-async function handle({ phone, text, isAudio, messageId, rawAudioMessage }) {
+async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioBase64 }) {
+  console.log(`[Router] Mensagem de ${phone} | áudio=${isAudio} | texto="${text}"`);
   try {
     let userMessage = text;
     let clienteSentAudio = false;
 
     // 1. Se for áudio, transcrever
     if (isAudio) {
-      const base64 = await evolution.downloadMedia(messageId, rawAudioMessage);
-      const audioBuffer = Buffer.from(base64, 'base64');
+      // WuzAPI envia base64 direto no webhook — usa ele; só faz download se não vier
+      const b64 = audioBase64 || await evolution.downloadMedia(messageId, rawAudioMessage);
+      const audioBuffer = Buffer.from(b64, 'base64');
       userMessage = await ai.transcribe(audioBuffer);
+      console.log(`[Router] Áudio transcrito: "${userMessage}"`);
       clienteSentAudio = true;
     }
 
@@ -60,11 +63,13 @@ async function handle({ phone, text, isAudio, messageId, rawAudioMessage }) {
     if (clienteSentAudio) {
       const base64Audio = await ai.textToSpeech(reply);
       await evolution.sendAudio(phone, base64Audio);
+      console.log(`[Router] Resposta em áudio enviada para ${phone}`);
     } else {
       await evolution.sendText(phone, reply);
+      console.log(`[Router] Resposta enviada para ${phone}: "${reply.slice(0, 80)}..."`);
     }
   } catch (err) {
-    console.error('[Router] Erro ao processar mensagem:', err.message);
+    console.error('[Router] Erro ao processar mensagem:', err.message, err.response?.data);
   }
 }
 
