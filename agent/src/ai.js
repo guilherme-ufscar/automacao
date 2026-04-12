@@ -83,4 +83,19 @@ async function textToSpeech(text) {
   return buffer.toString('base64');
 }
 
-module.exports = { chat, transcribe, textToSpeech };
+async function describeImage(imageDataUri, userCaption) {
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    max_tokens: 350,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image_url', image_url: { url: imageDataUri } },
+        { type: 'text', text: userCaption || 'Descreva esta imagem brevemente em português.' },
+      ],
+    }],
+  });
+  return res.choices[0].message.content;
+}
+
+module.exports = { chat, transcribe, textToSpeech, describeImage };

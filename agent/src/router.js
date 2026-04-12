@@ -2,8 +2,8 @@ const db = require('./db');
 const ai = require('./ai');
 const evolution = require('./evolution');
 
-async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioBase64 }) {
-  console.log(`[Router] Mensagem de ${phone} | áudio=${isAudio} | texto="${text}"`);
+async function handle({ phone, text, isAudio, isImage, messageId, rawAudioMessage, rawImageMessage, audioBase64 }) {
+  console.log(`[Router] Mensagem de ${phone} | áudio=${isAudio} | imagem=${isImage} | texto="${text}"`);
   try {
     let userMessage = text;
     let clienteSentAudio = false;
@@ -16,6 +16,22 @@ async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioB
       userMessage = await ai.transcribe(audioBuffer);
       console.log(`[Router] Áudio transcrito: "${userMessage}"`);
       clienteSentAudio = true;
+    }
+
+    // 1b. Se for imagem, descrever com vision
+    if (isImage && rawImageMessage) {
+      try {
+        const imgData = await evolution.downloadImage(rawImageMessage);
+        const caption = text || '';
+        const description = await ai.describeImage(imgData.Data, caption);
+        userMessage = caption
+          ? `[Imagem enviada com legenda: "${caption}"]\nDescrição da imagem: ${description}`
+          : `[Imagem enviada]\nDescrição da imagem: ${description}`;
+        console.log(`[Router] Imagem descrita: "${description.slice(0, 60)}..."`);
+      } catch (imgErr) {
+        console.error('[Router] Falha ao processar imagem:', imgErr.message);
+        userMessage = text || '[Imagem recebida, mas não foi possível processá-la]';
+      }
     }
 
     if (!userMessage || userMessage.trim() === '') {

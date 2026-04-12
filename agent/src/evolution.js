@@ -76,4 +76,17 @@ async function downloadMedia(messageId, audioMessage) {
   return res.data.Base64;
 }
 
-module.exports = { createUser, sendText, sendAudio, downloadMedia };
+async function downloadImage(imageMessage) {
+  const res = await axios.post(`${BASE_URL}/chat/downloadimage`, {
+    Url: imageMessage.url,
+    DirectPath: imageMessage.directPath,
+    MediaKey: imageMessage.mediaKey,
+    Mimetype: imageMessage.mimetype || 'image/jpeg',
+    FileEncSHA256: imageMessage.fileEncSha256,
+    FileSHA256: imageMessage.fileSha256,
+    FileLength: imageMessage.fileLength,
+  }, { headers: userHeaders });
+  return res.data.data; // retorna { Data: "data:image/jpeg;base64,...", Mimetype: "image/jpeg" }
+}
+
+module.exports = { createUser, sendText, sendAudio, downloadMedia, downloadImage };

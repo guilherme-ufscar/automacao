@@ -22,13 +22,15 @@ function parse(body) {
   // Remove @suffix e :device-index (ex: 5519999999:6@s.whatsapp.net → 5519999999)
   const phone = senderRaw.replace(/@.*/, '').replace(/:.*/, '');
   const isAudio = Info.Type === 'audio' || Info.MediaType === 'ptt' || !!Message.audioMessage;
+  const isImage = Info.MediaType === 'image' || !!Message.imageMessage;
   const text = Message.conversation || Message.extendedTextMessage?.text || '';
   const messageId = Info.ID;
   const rawAudioMessage = Message.audioMessage || null;
+  const rawImageMessage = Message.imageMessage || null;
   // WuzAPI envia base64 do áudio direto no corpo do webhook
   const audioBase64 = body.base64 || null;
 
-  return { phone, text, isAudio, messageId, rawAudioMessage, audioBase64 };
+  return { phone, text, isAudio, isImage, messageId, rawAudioMessage, rawImageMessage, audioBase64 };
 }
 
 module.exports = { parse };
