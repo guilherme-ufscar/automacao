@@ -25,13 +25,17 @@ async function handle({ phone, text, isAudio, messageId, rawAudioMessage, audioB
     }
 
     // 2. Garantir que o lead existe
+    console.log(`[Router] Buscando lead ${phone}...`);
     let lead = await db.getLead(phone);
     if (!lead) {
       lead = await db.upsertLead(phone, { segment: 'desconhecido', status: 'novo' });
     }
+    console.log(`[Router] Lead: segment=${lead.segment} status=${lead.status}`);
 
     // 3. Gerar resposta via IA
+    console.log(`[Router] Chamando OpenAI...`);
     let reply = await ai.chat(phone, userMessage);
+    console.log(`[Router] OpenAI respondeu: "${reply.slice(0, 60)}..."`);
 
     // 4. Se segmento desconhecido, verificar se IA retornou JSON de classificação
     if (lead.segment === 'desconhecido') {
