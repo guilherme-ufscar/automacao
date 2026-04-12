@@ -49,8 +49,12 @@ async function handle({ phone, text, isAudio, isImage, messageId, rawAudioMessag
     console.log(`[Router] Lead: segment=${lead.segment} status=${lead.status}`);
 
     // 3. Gerar resposta via IA
+    // Injeta nome do lead na mensagem de contexto se disponível
+    const contextMessage = lead.name
+      ? `[Contexto: o nome do cliente é ${lead.name}]\n${userMessage}`
+      : userMessage;
     console.log(`[Router] Chamando OpenAI...`);
-    let reply = await ai.chat(phone, userMessage);
+    let reply = await ai.chat(phone, contextMessage);
     console.log(`[Router] OpenAI respondeu: "${reply.slice(0, 60)}..."`);
 
     // 4. Se segmento desconhecido, verificar se IA retornou JSON de classificação
@@ -69,7 +73,17 @@ async function handle({ phone, text, isAudio, isImage, messageId, rawAudioMessag
       }
     }
 
-    // 5. Extrair e atualizar status se [STATUS:xxx] presente
+    // 5. Extrair nome se [NOME:xxx] presente
+    const nomeMatch = reply.match(/\[NOME:([^\]]+)\]/i);
+    if (nomeMatch) {
+      const nome = nomeMatch[1].trim();
+      await db.upsertLead(phone, { name: nome });
+      lead.name = nome;
+      reply = reply.replace(/\[NOME:[^\]]+\]/gi, '').trim();
+      console.log(`[Router] Nome do cliente salvo: "${nome}"`);
+    }
+
+    // Extrair e atualizar status se [STATUS:xxx] presente
     const statusMatch = reply.match(/\[STATUS:(quente|morno|frio)\]/i);
     if (statusMatch) {
       const status = statusMatch[1].toLowerCase();
