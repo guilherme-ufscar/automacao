@@ -24,8 +24,8 @@ services:
     image: asternic/wuzapi:latest
     container_name: alcantara_wuzapi
     restart: unless-stopped
-    ports:
-      - "${PORT_EVOLUTION:-8080}:8080"
+    expose:
+      - "8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,8 +48,8 @@ services:
     build: ./agent
     container_name: alcantara_agent
     restart: unless-stopped
-    ports:
-      - "${PORT_AGENT:-3000}:3000"
+    expose:
+      - "3000"
     depends_on:
       postgres:
         condition: service_healthy

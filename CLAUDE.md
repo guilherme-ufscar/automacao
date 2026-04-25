@@ -11,7 +11,7 @@ Você é um agente full stack sênior. Implemente TUDO de uma vez por fase, sem 
 Criar um **agente de IA para WhatsApp** que atua como assistente imobiliária chamada **Karina**, da **Alcântara Negócios Imobiliários**.
 
 O agente deve:
-- Receber mensagens via **Evolution API** (webhook)
+- Receber mensagens via **WuzAPI** (webhook)
 - Responder mensagens de texto e áudio (transcrever + responder)
 - Gerar respostas em áudio quando o cliente enviar áudio
 - Conduzir triagem de leads: Minha Casa Minha Vida, Leilão, Regularização
@@ -26,7 +26,7 @@ O agente deve:
 | Camada | Tecnologia |
 |---|---|
 | Runtime | Node.js 20 Alpine |
-| WhatsApp | Evolution API v2 (via webhook HTTP) |
+| WhatsApp | WuzAPI (via webhook HTTP) |
 | IA texto | OpenAI `gpt-4o-mini` |
 | IA voz → texto | OpenAI `whisper-1` |
 | IA texto → voz | OpenAI `tts-1` |
@@ -46,12 +46,12 @@ O agente deve:
 ├── agent/
 │   ├── src/
 │   │   ├── index.js          # Entry point (inicia Express + init DB)
-│   │   ├── webhook.js        # Parse e validação dos eventos da Evolution API
+│   │   ├── webhook.js        # Parse e validação dos eventos da WuzAPI
 │   │   ├── ai.js             # OpenAI: chat, whisper, tts
 │   │   ├── db.js             # PostgreSQL: pool + init tabelas + queries
 │   │   ├── router.js         # Lógica de roteamento de mensagens
 │   │   ├── prompts.js        # Todos os system prompts centralizados
-│   │   ├── evolution.js      # Cliente HTTP para Evolution API
+│   │   ├── evolution.js      # Cliente HTTP para WuzAPI
 │   │   └── server.js         # Express: rotas API REST + serve painel
 │   ├── public/
 │   │   └── index.html        # Painel de leads (HTML puro)
@@ -75,33 +75,25 @@ Subir **3 serviços** na mesma network interna `alcantara_net`:
 - Env: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
 - Healthcheck: `pg_isready -U ${POSTGRES_USER}`
 
-### Serviço `evolution`
-- Imagem: `atendai/evolution-api:latest`
+### Serviço `wuzapi`
+- Imagem: `wuzapi/wuzapi:latest`
 - Porta exposta: `8080:8080`
 - Depende de: `postgres` condition `service_healthy`
 - Variáveis obrigatórias:
   ```
-  SERVER_URL=http://evolution:8080
-  AUTHENTICATION_TYPE=apikey
-  AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY}
-  DATABASE_ENABLED=true
-  DATABASE_PROVIDER=postgresql
-  DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-  WEBHOOK_GLOBAL_ENABLED=true
-  WEBHOOK_GLOBAL_URL=http://agent:3000/webhook
-  WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false
-  DEL_INSTANCE=false
+  WUZAPI_ADMIN_TOKEN=${EVOLUTION_API_KEY}
+  WUZAPI_WEBHOOK_URL=http://agent:3000/webhook
   ```
-- Volume: `evolution_data:/evolution/instances`
+- Volume: `wuzapi_data:/wuzapi/data`
 
 ### Serviço `agent`
 - Build: `./agent`
 - Porta exposta: `3000:3000`
-- Depende de: `postgres` (healthy) + `evolution`
+- Depende de: `postgres` (healthy) + `wuzapi`
 - Env: todas as variáveis via `.env` na raiz
 - Restart: `unless-stopped`
 
-### Volumes nomeados: `postgres_data`, `evolution_data`
+### Volumes nomeados: `postgres_data`, `wuzapi_data`
 ### Network: `alcantara_net` bridge
 
 ---
@@ -112,9 +104,10 @@ Subir **3 serviços** na mesma network interna `alcantara_net`:
 # OpenAI
 OPENAI_API_KEY=sk-...
 
-# Evolution API
-EVOLUTION_API_KEY=sua-chave-aqui
-EVOLUTION_BASE_URL=http://evolution:8080
+# WuzAPI
+EVOLUTION_API_KEY=sua-chave-admin-aqui   # admin token do WuzAPI
+WUZAPI_BASE_URL=http://wuzapi:8080
+WUZAPI_USER_TOKEN=sua-chave-user-aqui
 EVOLUTION_INSTANCE=karina
 
 # PostgreSQL
@@ -176,60 +169,76 @@ CREATE INDEX IF NOT EXISTS idx_leads_segment ON leads(segment);
 
 ---
 
-## 📲 EVOLUTION API — CLIENTE (agent/src/evolution.js)
+## 📲 WUZAPI — CLIENTE (agent/src/evolution.js)
 
-Headers em toda request: `{ apikey: EVOLUTION_API_KEY, 'Content-Type': 'application/json' }`
+Headers user: `{ Token: WUZAPI_USER_TOKEN, 'Content-Type': 'application/json' }`
+Headers admin: `{ Authorization: EVOLUTION_API_KEY, 'Content-Type': 'application/json' }`
 
 ```js
+// Criar usuário/instância (chamado no boot)
+// POST {WUZAPI_BASE_URL}/user/create
+// body: { Name: INSTANCE, Token: USER_TOKEN }
+createUser()
+
 // Enviar texto
-// POST {EVOLUTION_BASE_URL}/message/sendText/{EVOLUTION_INSTANCE}
-// body: { number: phone, text: text }
+// POST {WUZAPI_BASE_URL}/chat/send/text
+// body: { Phone: phone, Body: text }
 sendText(phone, text)
 
 // Enviar áudio (base64 ogg/opus)
-// POST {EVOLUTION_BASE_URL}/message/sendMedia/{EVOLUTION_INSTANCE}
-// body: { number: phone, mediatype: "audio", media: base64, fileName: "audio.ogg", mimetype: "audio/ogg; codecs=opus" }
+// POST {WUZAPI_BASE_URL}/chat/send/audio
+// body: { Phone: phone, Audio: "data:audio/ogg;base64,...", PTT: true, MimeType: "audio/ogg; codecs=opus" }
 sendAudio(phone, base64Audio)
 
-// Baixar mídia recebida
-// POST {EVOLUTION_BASE_URL}/chat/getBase64FromMediaMessage/{EVOLUTION_INSTANCE}
-// body: { message: { key: { id: messageId } } }
-// retorna: { base64: "..." }
-downloadMedia(messageId)
+// Baixar áudio recebido
+// POST {WUZAPI_BASE_URL}/chat/downloadaudio
+// body: { Url, MediaKey, Mimetype, FileSHA256, FileLength }
+// retorna: { Base64: "..." }
+downloadMedia(messageId, rawAudioMessage)
+
+// Baixar imagem recebida
+// POST {WUZAPI_BASE_URL}/chat/downloadimage
+// body: { Url, DirectPath, MediaKey, Mimetype, FileEncSHA256, FileSHA256, FileLength }
+downloadImage(rawImageMessage)
 ```
 
 ---
 
 ## 📥 WEBHOOK — PARSE (agent/src/webhook.js)
 
-A Evolution API envia `POST /webhook` com body:
+A WuzAPI envia `POST /webhook` com body:
 
 ```json
 {
-  "event": "messages.upsert",
-  "data": {
-    "key": {
-      "remoteJid": "5511999999999@s.whatsapp.net",
-      "fromMe": false,
-      "id": "MSG_ID_AQUI"
+  "type": "Message",
+  "event": {
+    "Info": {
+      "ID": "MSG_ID_AQUI",
+      "Sender": "5511999999999@s.whatsapp.net",
+      "SenderAlt": "5511999999999@s.whatsapp.net",
+      "Chat": "5511999999999@s.whatsapp.net",
+      "IsFromMe": false,
+      "Type": "text",
+      "MediaType": ""
     },
-    "message": {
-      "conversation": "texto da mensagem",
-      "audioMessage": {}
-    },
-    "messageType": "conversation"
-  }
+    "Message": {
+      "conversation": "texto da mensagem"
+    }
+  },
+  "base64": "..."
 }
 ```
 
 **Regras de parse:**
-- Ignorar se `event !== "messages.upsert"`
-- Ignorar se `data.key.fromMe === true`
-- Ignorar se `data.data.message` for nulo
-- `phone` = `data.key.remoteJid` removendo `@s.whatsapp.net` e `@g.us` (ignorar grupos)
-- `isAudio` = `messageType === "audioMessage"`
-- `text` = `message.conversation || message.extendedTextMessage?.text || ""`
-- `messageId` = `data.key.id`
+- Ignorar se `body.type !== "Message"`
+- Ignorar se `Info.IsFromMe === true` ou `Info.FromMe === true`
+- Ignorar se `Info.Chat` contém `@g.us` (grupos)
+- `phone` = `Info.SenderAlt || Info.Sender` removendo `@...` e `:device-index`
+- `isAudio` = `Info.Type === "audio"` ou `Info.MediaType === "ptt"` ou `!!Message.audioMessage`
+- `isImage` = `Info.MediaType === "image"` ou `!!Message.imageMessage`
+- `text` = `Message.conversation || Message.extendedTextMessage?.text || ""`
+- `messageId` = `Info.ID`
+- `audioBase64` = `body.base64 || null` (WuzAPI envia base64 direto no webhook)
 
 ---
 
@@ -401,7 +410,7 @@ Interface dark, HTML puro + fetch nativo. Sem frameworks.
 ## 🔌 API REST (agent/src/server.js)
 
 ```
-GET  /webhook              → retorna 200 OK (health check da Evolution)
+GET  /webhook              → retorna 200 OK (health check da WuzAPI)
 POST /webhook              → recebe eventos → chama webhook.parse() → router.handle()
 GET  /api/leads            → lista leads com filtros ?status= ?segment= ?page= ?limit=20
 GET  /api/leads/:phone     → lead + histórico completo
@@ -463,9 +472,9 @@ CMD ["node", "src/index.js"]
 6. `agent/src/db.js` — pool + init tabelas + todas as queries
 7. `agent/src/prompts.js` — todos os prompts
 
-**Fase 3 — IA + Evolution**
+**Fase 3 — IA + WuzAPI**
 8. `agent/src/ai.js` — chat, transcribe, textToSpeech
-9. `agent/src/evolution.js` — sendText, sendAudio, downloadMedia
+9. `agent/src/evolution.js` — createUser, sendText, sendAudio, downloadMedia, downloadImage
 10. `agent/src/router.js` — lógica completa de roteamento
 
 **Fase 4 — Servidor**
@@ -482,9 +491,9 @@ CMD ["node", "src/index.js"]
 ## ✅ CRITÉRIOS DE ACEITE
 
 - [ ] `docker compose up --build` sobe os 3 serviços sem erro
-- [ ] Evolution API acessível em `http://localhost:8080`
+- [ ] WuzAPI acessível em `http://localhost:8080`
 - [ ] Agente acessível em `http://localhost:3000`
-- [ ] Webhook recebe mensagem de texto e responde via Evolution API
+- [ ] Webhook recebe mensagem de texto e responde via WuzAPI
 - [ ] Áudio recebido → transcrito → resposta em áudio
 - [ ] Lead criado e atualizado no PostgreSQL automaticamente
 - [ ] Segmento detectado automaticamente na primeira interação
