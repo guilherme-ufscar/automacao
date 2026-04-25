@@ -8,7 +8,23 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Health check para Evolution API
+// Cache de deduplicação: messageId → timestamp
+const processedIds = new Map();
+const DEDUP_TTL_MS = 30_000;
+
+function isDuplicate(messageId) {
+  if (!messageId) return false;
+  const now = Date.now();
+  // Limpa entradas antigas
+  for (const [id, ts] of processedIds) {
+    if (now - ts > DEDUP_TTL_MS) processedIds.delete(id);
+  }
+  if (processedIds.has(messageId)) return true;
+  processedIds.set(messageId, now);
+  return false;
+}
+
+// Health check
 app.get('/webhook', (req, res) => {
   res.status(200).send('OK');
 });
@@ -22,6 +38,11 @@ app.post('/webhook', async (req, res) => {
   const parsed = webhook.parse(req.body);
   if (!parsed) {
     console.log('[Webhook] parse retornou null — ignorado');
+    return;
+  }
+
+  if (isDuplicate(parsed.messageId)) {
+    console.log(`[Webhook] Duplicata ignorada: ${parsed.messageId}`);
     return;
   }
 
