@@ -12,6 +12,7 @@ async function chat(phone, userMessage) {
   const lead = await db.getLead(phone);
   const segment = lead ? lead.segment : 'desconhecido';
   const systemPrompt = await prompts.getPrompt(segment);
+  console.log(`[PROMPT DEBUG] segment=${segment} prompt_inicio="${systemPrompt.slice(0,120)}"`);
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini', // nunca trocar para outro modelo
