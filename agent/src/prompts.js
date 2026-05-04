@@ -144,9 +144,9 @@ async function getPrompt(segment) {
     const base = PROMPTS[segment] || PROMPTS.desconhecido;
     const custom = await db.getConfig(`prompt_${segment}`);
     if (custom) {
-      // Prompt customizado entra ENTRE as regras base e o fluxo técnico.
-      // Nunca substitui — apenas adiciona contexto de negócio do cliente.
-      return `${base}\n\n--- INSTRUÇÕES ADICIONAIS DO OPERADOR ---\n${custom}\n--- FIM DAS INSTRUÇÕES ADICIONAIS ---`;
+      // Instruções do operador entram NO INÍCIO, com prioridade máxima,
+      // antes do fluxo de triagem — o GPT respeita o que vem primeiro.
+      return `⚠️ INSTRUÇÕES PRIORITÁRIAS DO OPERADOR (seguir antes de qualquer outra regra):\n${custom}\n⚠️ FIM DAS INSTRUÇÕES PRIORITÁRIAS\n\n${base}`;
     }
     return base;
   } catch (e) { /* fallback to static */ }
