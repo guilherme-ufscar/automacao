@@ -86,7 +86,8 @@ async function downloadImage(imageMessage) {
     FileSHA256: imageMessage.fileSha256,
     FileLength: imageMessage.fileLength,
   }, { headers: userHeaders });
-  return res.data.data; // retorna { Data: "data:image/jpeg;base64,...", Mimetype: "image/jpeg" }
+  // WuzAPI retorna { Data: "data:image/jpeg;base64,...", Mimetype: "..." } direto em res.data
+  return res.data;
 }
 
 module.exports = { createUser, sendText, sendAudio, downloadMedia, downloadImage };

@@ -98,4 +98,25 @@ async function describeImage(imageDataUri, userCaption) {
   return res.choices[0].message.content;
 }
 
-module.exports = { chat, transcribe, textToSpeech, describeImage };
+async function summarize(messages) {
+  const transcript = messages
+    .map(m => `${m.role === 'user' ? 'Cliente' : 'Karina'}: ${m.content}`)
+    .join('\n');
+
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    max_tokens: 200,
+    temperature: 0.3,
+    messages: [
+      {
+        role: 'system',
+        content: 'Você resume conversas de atendimento imobiliário em até 5 linhas. Destaque: interesse do cliente, dados coletados (renda, FGTS, nome limpo, etc.), status atual e próximo passo. Seja direto e objetivo.',
+      },
+      { role: 'user', content: `Resuma esta conversa:\n\n${transcript}` },
+    ],
+  });
+
+  return res.choices[0].message.content;
+}
+
+module.exports = { chat, transcribe, textToSpeech, describeImage, summarize };

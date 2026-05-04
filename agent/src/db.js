@@ -47,6 +47,7 @@ async function initDB() {
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ;
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS notes TEXT;
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS assigned_to TEXT;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS human_takeover BOOLEAN DEFAULT FALSE;
   `);
   console.log('[DB] Tabelas inicializadas');
 }
@@ -191,6 +192,13 @@ async function setConfig(key, value) {
   `, [key, value]);
 }
 
+async function setHumanTakeover(phone, value) {
+  await pool.query(
+    'UPDATE leads SET human_takeover = $1, updated_at = NOW() WHERE phone = $2',
+    [value, phone]
+  );
+}
+
 module.exports = {
   pool,
   initDB,
@@ -199,6 +207,7 @@ module.exports = {
   updateLeadStatus,
   updateLeadSegment,
   scheduleAppointment,
+  setHumanTakeover,
   saveMessage,
   getLastMessages,
   getAllLeads,

@@ -46,7 +46,14 @@ async function handle({ phone, text, isAudio, isImage, messageId, rawAudioMessag
     if (!lead) {
       lead = await db.upsertLead(phone, { segment: 'desconhecido', status: 'novo' });
     }
-    console.log(`[Router] Lead: segment=${lead.segment} status=${lead.status}`);
+    console.log(`[Router] Lead: segment=${lead.segment} status=${lead.status} human_takeover=${lead.human_takeover}`);
+
+    // Se operador assumiu a conversa, bot não responde
+    if (lead.human_takeover) {
+      console.log(`[Router] human_takeover ativo para ${phone} — bot silenciado`);
+      await db.saveMessage(phone, 'user', userMessage, clienteSentAudio ? 'audio' : 'text');
+      return;
+    }
 
     // 3. Gerar resposta via IA
     // Injeta nome do lead na mensagem de contexto se disponível

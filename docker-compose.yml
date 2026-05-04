@@ -45,11 +45,13 @@ services:
       - alcantara_net
 
   agent:
-    build: ./agent
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
     container_name: alcantara_agent
     restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      - "${PORT_AGENT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,22 +59,6 @@ services:
         condition: service_started
     env_file:
       - ./agent/.env
-    networks:
-      - alcantara_net
-
-  crm:
-    build: ./crm
-    container_name: alcantara_crm
-    restart: unless-stopped
-    ports:
-      - "${PORT_CRM:-7919}:7919"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - ./agent/.env
-    environment:
-      PORT: 7919
     networks:
       - alcantara_net
 

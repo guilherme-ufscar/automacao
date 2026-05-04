@@ -610,6 +610,7 @@ select.filter:focus{border-color:var(--accent)}
       <option value="leilao">🔨 Leilão</option>
       <option value="regularizacao">📋 Regularização</option>
     </select>
+    <button id="btn-takeover" class="btn btn-sm" onclick="toggleTakeover()" style="margin-left:auto"></button>
   </div>
   <div class="panel-tabs">
     <button class="tab-btn active" onclick="switchTab('resumo')">Resumo</button>
@@ -625,6 +626,10 @@ select.filter:focus{border-color:var(--accent)}
       <button class="btn btn-primary" onclick="saveResumo()" style="width:100%"><i data-lucide="save"></i> Salvar alterações</button>
     </div>
     <div class="tab-content" id="tab-conversa">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn btn-ghost btn-sm" id="btn-summarize" onclick="summarizeConversation()"><i data-lucide="sparkles"></i> Resumir conversa</button>
+      </div>
+      <div id="summary-box" style="display:none;margin-bottom:12px" class="info-box"></div>
       <div class="chat-messages" id="chat-messages"></div>
       <div class="send-box">
         <textarea class="send-input" id="send-input" rows="2" placeholder="Enviar mensagem via WhatsApp…" onkeydown="handleSendKey(event)"></textarea>
@@ -894,6 +899,7 @@ async function openLead(phone) {
   document.getElementById('panel-wa').href = 'https://wa.me/'+phone;
   document.getElementById('panel-status').value = l.status||'novo';
   document.getElementById('panel-seg').value = l.segment||'desconhecido';
+  renderTakeoverBtn(l.human_takeover);
   document.getElementById('edit-name').value = l.name||'';
   document.getElementById('assigned-to').value = l.assigned_to||'';
 
@@ -945,6 +951,29 @@ function switchTab(name) {
 
 async function updateStatus() { if(!curLead) return; await api('/api/leads/'+curLead.phone,'PUT',{status:document.getElementById('panel-status').value}); toast('Status atualizado!','success'); }
 async function updateSegment() { if(!curLead) return; await api('/api/leads/'+curLead.phone,'PUT',{segment:document.getElementById('panel-seg').value}); toast('Segmento atualizado!','success'); }
+
+function renderTakeoverBtn(active) {
+  const btn = document.getElementById('btn-takeover');
+  if (active) {
+    btn.className = 'btn btn-sm btn-primary';
+    btn.innerHTML = '<i data-lucide="bot"></i> Devolver para IA';
+  } else {
+    btn.className = 'btn btn-sm btn-danger';
+    btn.innerHTML = '<i data-lucide="user-check"></i> Assumir conversa';
+  }
+  lucide.createIcons();
+}
+
+async function toggleTakeover() {
+  if (!curLead) return;
+  const active = !curLead.human_takeover;
+  const res = await api('/api/leads/'+curLead.phone+'/takeover', 'POST', { active });
+  if (!res) return;
+  curLead.human_takeover = active;
+  renderTakeoverBtn(active);
+  toast(active ? 'Você assumiu a conversa. Bot silenciado.' : 'IA retomou o atendimento.', active ? 'info' : 'success');
+}
+
 async function saveResumo() {
   if(!curLead) return;
   const name=document.getElementById('edit-name').value;
@@ -978,6 +1007,18 @@ async function sendMessage() {
   chat.scrollTop=chat.scrollHeight; toast('Enviado!','success');
 }
 function handleSendKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+
+async function summarizeConversation() {
+  if(!curLead) return;
+  const btn=document.getElementById('btn-summarize');
+  const box=document.getElementById('summary-box');
+  btn.disabled=true; btn.innerHTML='<i data-lucide="loader-2"></i> Resumindo…'; lucide.createIcons();
+  const res = await api('/api/leads/'+curLead.phone+'/summarize','POST');
+  btn.disabled=false; btn.innerHTML='<i data-lucide="sparkles"></i> Resumir conversa'; lucide.createIcons();
+  if(!res) return;
+  box.style.display='block';
+  box.innerHTML='<strong style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--accent)">Resumo da conversa</strong><br><br>'+esc(res.summary).replace(/\n/g,'<br>');
+}
 
 // ── API ────────────────────────────────────────────────────
 async function api(url, method='GET', body=null) {
