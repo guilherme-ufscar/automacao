@@ -141,8 +141,14 @@ Quando classificar: [STATUS:quente] ou [STATUS:morno] ou [STATUS:frio]`,
 async function getPrompt(segment) {
   try {
     const db = require('./db');
+    const base = PROMPTS[segment] || PROMPTS.desconhecido;
     const custom = await db.getConfig(`prompt_${segment}`);
-    if (custom) return custom;
+    if (custom) {
+      // Prompt customizado entra ENTRE as regras base e o fluxo técnico.
+      // Nunca substitui — apenas adiciona contexto de negócio do cliente.
+      return `${base}\n\n--- INSTRUÇÕES ADICIONAIS DO OPERADOR ---\n${custom}\n--- FIM DAS INSTRUÇÕES ADICIONAIS ---`;
+    }
+    return base;
   } catch (e) { /* fallback to static */ }
   return PROMPTS[segment] || PROMPTS.desconhecido;
 }
